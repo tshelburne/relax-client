@@ -6,8 +6,8 @@ function json() {
 				Accept: `application/json`,
 			}
 		})
-		const json = await response.json()
-		return json
+		const data = await response.json()
+		return data
 	}
 }
 

@@ -1,9 +1,17 @@
 import qs from 'qs'
 import merge from 'deepmerge'
 
+function create(apiRoot, middlewares) {
+	const client = new Client(apiRoot)
+	middlewares.forEach((fn) => client.use(fn))
+	return [`get`, `post`, `put`, `destroy`].map((k) => client[k].bind(client))
+}
+
+export default create
+
 const MIDDLEWARES = Symbol(`MIDDLEWARES`)
 
-class Client {
+export class Client {
 
 	constructor(apiRoot) {
 		this.apiRoot = apiRoot
@@ -43,6 +51,13 @@ class Client {
 
 }
 
+export class RequestError extends Error {
+	constructor(response) {
+		super(`Request failed: ${response.statusText}`)
+		this.response = response
+	}
+}
+
 function run(request, [fn, ...rest]) {
 	if (!rest.length) return fn(request)
 
@@ -55,12 +70,5 @@ function send() {
 		const response = await fetch(new Request({...rest, headers: new Headers(headers)}))
 		if (!response.ok) throw new RequestError(response)
 		return response
-	}
-}
-
-class RequestError extends Error {
-	constructor(response) {
-		super(`Request failed: ${response.statusText}`)
-		this.response = response
 	}
 }
