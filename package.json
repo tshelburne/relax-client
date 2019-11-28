@@ -1,0 +1,26 @@
+{
+  "name": "relax-client",
+  "version": "0.1.0",
+  "description": "A request helper to make building custom API clients simple",
+  "main": "dist/request.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tshelburne/relax-client.git"
+  },
+  "keywords": [
+    "api",
+    "client",
+    "rest",
+    "request",
+    "fetch"
+  ],
+  "author": "Tim Shelburne <shelburt02@gmail.com> (https://github.com/tshelburne/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tshelburne/relax-client/issues"
+  },
+  "homepage": "https://github.com/tshelburne/relax-client#readme"
+}
