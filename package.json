@@ -4,7 +4,10 @@
   "description": "A request helper to make building custom API clients simple",
   "main": "dist/request.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rm -rf dist",
+    "build": "babel src --out-dir dist",
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "repository": {
     "type": "git",
@@ -22,5 +25,23 @@
   "bugs": {
     "url": "https://github.com/tshelburne/relax-client/issues"
   },
-  "homepage": "https://github.com/tshelburne/relax-client#readme"
+  "homepage": "https://github.com/tshelburne/relax-client#readme",
+  "dependencies": {
+    "qs": "^6.9.1"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.7.4",
+    "@babel/core": "^7.7.4",
+    "@babel/preset-env": "^7.7.4"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "modules": "auto"
+        }
+      ]
+    ]
+  }
 }
