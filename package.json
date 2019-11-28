@@ -2,7 +2,7 @@
   "name": "relax-client",
   "version": "0.1.0",
   "description": "A request helper to make building custom API clients simple",
-  "main": "dist/request.js",
+  "main": "dist/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rm -rf dist",
@@ -27,6 +27,7 @@
   },
   "homepage": "https://github.com/tshelburne/relax-client#readme",
   "dependencies": {
+    "deepmerge": "^4.2.2",
     "qs": "^6.9.1"
   },
   "devDependencies": {
