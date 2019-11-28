@@ -1,10 +1,13 @@
 import qs from 'qs'
 import merge from 'deepmerge'
 
-function create(apiRoot, middlewares) {
+function create(apiRoot, middlewares = []) {
 	const client = new Client(apiRoot)
 	middlewares.forEach((fn) => client.use(fn))
-	return [`get`, `post`, `put`, `destroy`].map((k) => client[k].bind(client))
+	return [`get`, `post`, `put`, `destroy`].reduce((acc, k) => ({
+		...acc,
+		[k]: client[k].bind(client),
+	}), client)
 }
 
 export default create
@@ -35,14 +38,14 @@ export class Client {
 	}
 
 	destroy(...args) {
-		return this.request(`destroy`, ...args)
+		return this.request(`delete`, ...args)
 	}
 
 	request(method, rawPath, data = {}) {
 		const body = [`post`, `put`].includes(method) ? JSON.stringify(data) : undefined
 
-		const [, path, search] = rawPath.match(/(.*)(\?.*)?/)
-		const encodedPath = path.split(`/`).map(encodeURIComponent).join(`/`)
+		const [, path, search] = rawPath.match(/([^\?]*)\??(.*)?/)
+		const encodedPath = path.split(`/`).filter(v => v).map(encodeURIComponent).join(`/`)
 		const query = qs.stringify({...qs.parse(search), ...(body ? null : data)})
 		const url = `${this.apiRoot}/${encodedPath}${query && `?${query}`}` // eslint-disable-line no-undef
 
@@ -66,8 +69,8 @@ function run(request, [fn, ...rest]) {
 
 function send() {
 	return async (request) => {
-		const {headers, ...rest} = request
-		const response = await fetch(new Request({...rest, headers: new Headers(headers)}))
+		const {url, headers, ...rest} = request
+		const response = await fetch(url, {...rest, headers: new Headers(headers)})
 		if (!response.ok) throw new RequestError(response)
 		return response
 	}

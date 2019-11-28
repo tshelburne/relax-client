@@ -4,7 +4,7 @@
   "description": "A request helper to make building custom API clients simple",
   "main": "dist/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "mocha",
     "clean": "rm -rf dist",
     "build": "babel src --out-dir dist",
     "prepublishOnly": "npm run clean && npm run build"
@@ -33,7 +33,16 @@
   "devDependencies": {
     "@babel/cli": "^7.7.4",
     "@babel/core": "^7.7.4",
-    "@babel/preset-env": "^7.7.4"
+    "@babel/plugin-transform-runtime": "^7.7.4",
+    "@babel/preset-env": "^7.7.4",
+    "@babel/register": "^7.7.4",
+    "@babel/runtime": "^7.7.4",
+    "chai": "^4.2.0",
+    "chai-as-promised": "^7.1.1",
+    "fetch-mock": "^8.0.0",
+    "isomorphic-fetch": "^2.2.1",
+    "mocha": "^6.2.2",
+    "mocha-clean": "^1.0.0"
   },
   "babel": {
     "presets": [
@@ -41,6 +50,14 @@
         "@babel/preset-env",
         {
           "modules": "auto"
+        }
+      ]
+    ],
+    "plugins": [
+      [
+        "@babel/plugin-transform-runtime",
+        {
+          "regenerator": true
         }
       ]
     ]

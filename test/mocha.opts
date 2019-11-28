@@ -1,0 +1,4 @@
+-r @babel/register
+-r mocha-clean
+-r isomorphic-fetch
+--recursive
