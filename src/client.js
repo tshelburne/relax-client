@@ -18,11 +18,11 @@ export class Client {
 
 	constructor(apiRoot) {
 		this.apiRoot = apiRoot
-		this[MIDDLEWARES] = [send()]
+		this[MIDDLEWARES] = []
 	}
 
 	use(fn) {
-		this[MIDDLEWARES].unshift(fn)
+		this[MIDDLEWARES].push(fn)
 	}
 
 	get(...args) {
@@ -49,7 +49,7 @@ export class Client {
 		const query = qs.stringify({...qs.parse(search), ...(body ? null : data)})
 		const url = `${this.apiRoot}/${encodedPath}${query && `?${query}`}` // eslint-disable-line no-undef
 
-		return run({url, method, body}, this[MIDDLEWARES])
+		return run({url, method, body}, this[MIDDLEWARES].concat(send()))
 	}
 
 }

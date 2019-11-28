@@ -29,8 +29,8 @@ npm install --save relax-client
 import create, {bearerAuth, json} from 'relax-client'
 
 const {get, post, put, destroy} = create(`https://api.test.com/v1`, [
-	bearerAuth(`storage-key`),
 	json(),
+	bearerAuth(`storage-key`),
 ])
 
 export const login = (username, password) => post(`login`, {username, password})
@@ -66,7 +66,8 @@ Each middleware function is called with two arguments - the current `request` de
 accepts an update object for those request details. The callback will return a Promise that ultimately
 resolves with the response object, and your middlewares can further process the response.
 
-Depending on what actions your middlewares take, the order can matter.
+Depending on what actions your middlewares take, the order can matter. They take effect in the order they
+are added for the creation of the request, and in reverse order for handling the response.
 
 ```js
 import create, {Client, form} from 'relax-client'

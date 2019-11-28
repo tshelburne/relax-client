@@ -108,7 +108,7 @@ describe(`using middlewares with the client`, function() {
 	it(`handles multiple middlewares at once`, async function() {
 		const lsKey = `storagekey`
 		localStorage.removeItem(lsKey)
-		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(lsKey), form(), json()])
+		const {get, post} = create(`https://api.test.com/v1`, [json(), bearerAuth(lsKey), form()])
 
 		fetchMock
 			.post(`https://api.test.com/v1/login`, {headers: {Authorization: `test-token`}, body: {success: true}})
