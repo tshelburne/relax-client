@@ -1,5 +1,5 @@
 import qs from 'qs'
-import merge from 'deepmerge'
+import deepmerge from 'deepmerge'
 
 function create(apiRoot, middlewares = []) {
 	const client = new Client(apiRoot)
@@ -65,6 +65,10 @@ function run(request, [fn, ...rest]) {
 	if (!rest.length) return fn(request)
 
 	return fn(request, (updates) => run(merge(request, updates), rest))
+}
+
+function merge(obj1, obj2) {
+	return obj2 ? deepmerge(obj1, obj2) : obj1
 }
 
 function send() {

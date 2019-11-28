@@ -1,5 +1,7 @@
 function form() {
-	return ({body}, next) => {
+	return ({method, body}, next) => {
+		if (![`post`, `put`].includes(method)) return next()
+
 		const data = JSON.parse(body)
 
 		const formBody = new FormData()

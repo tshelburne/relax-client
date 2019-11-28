@@ -1,4 +1,6 @@
 -r @babel/register
 -r mocha-clean
 -r isomorphic-fetch
+-r isomorphic-form-data
+-r mock-local-storage
 --recursive

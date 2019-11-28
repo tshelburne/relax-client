@@ -41,8 +41,10 @@
     "chai-as-promised": "^7.1.1",
     "fetch-mock": "^8.0.0",
     "isomorphic-fetch": "^2.2.1",
+    "isomorphic-form-data": "^2.0.0",
     "mocha": "^6.2.2",
-    "mocha-clean": "^1.0.0"
+    "mocha-clean": "^1.0.0",
+    "mock-local-storage": "^1.1.11"
   },
   "babel": {
     "presets": [
