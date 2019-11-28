@@ -1,6 +1,8 @@
 relax-client
 ============
 
+[![CircleCI](https://circleci.com/gh/tshelburne/relax-client.svg?style=svg)](https://circleci.com/gh/tshelburne/relax-client)
+
 A super-simple REST client creation tool to encourage custom API clients for every business.
 
 ## Intention
