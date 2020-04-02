@@ -4,7 +4,7 @@ import deepmerge from 'deepmerge'
 function create(apiRoot, middlewares = []) {
 	const client = new Client(apiRoot)
 	middlewares.forEach((fn) => client.use(fn))
-	return [`get`, `post`, `put`, `destroy`].reduce((acc, k) => ({
+	return [`get`, `post`, `put`, `patch`, `destroy`].reduce((acc, k) => ({
 		...acc,
 		[k]: client[k].bind(client),
 	}), client)
@@ -37,12 +37,16 @@ export class Client {
 		return this.request(`put`, ...args)
 	}
 
+	patch(...args) {
+		return this.request(`patch`, ...args)
+	}
+
 	destroy(...args) {
 		return this.request(`delete`, ...args)
 	}
 
 	request(method, rawPath, data = {}) {
-		const body = [`post`, `put`].includes(method) ? JSON.stringify(data) : undefined
+		const body = [`post`, `put`, `patch`].includes(method) ? JSON.stringify(data) : undefined
 
 		const [, path, search] = rawPath.match(/([^\?]*)\??(.*)?/)
 		const encodedPath = path.split(`/`).filter(v => v).map(encodeURIComponent).join(`/`)
