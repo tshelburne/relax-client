@@ -63,6 +63,22 @@ describe(`a basic client`, function() {
 		})
 	})
 
+	it(`makes PATCH requests`, async function() {
+		fetchMock.patch(`https://api.test.com/v1/account`, 200)
+
+		const response = await this.client.patch(`account`, {test: `data`})
+		expect(response.ok).to.be.true
+		expect(response.status).to.equal(200)
+
+		const [url, options] = fetchMock.calls()[0]
+		expect(url).to.equal(`https://api.test.com/v1/account`)
+		expect(options).to.deep.equal({
+			method: `patch`,
+			headers: new Headers({}),
+			body: `{"test":"data"}`,
+		})
+	})
+
 	it(`makes DELETE requests`, async function() {
 		fetchMock.delete(`https://api.test.com/v1/account?test=data`, 200)
 
