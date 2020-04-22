@@ -1,8 +1,7 @@
 function html() {
 	return async (_, next) => {
 		const response = await next({ headers: { Accept: `text/html` } })
-		const data = await response.text()
-		return data
+		return response.status === 204 ? `` : response.text()
 	}
 }
 
