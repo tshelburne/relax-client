@@ -1,8 +1,7 @@
 function blob() {
 	return async (_, next) => {
 		const response = await next({ headers: { Accept: `*/*` } })
-		const data = await response.blob()
-		return data
+		return response.status === 204 ? new Blob([]) : response.blob()
 	}
 }
 

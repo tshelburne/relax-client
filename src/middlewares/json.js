@@ -6,8 +6,7 @@ function json() {
 				Accept: `application/json`,
 			}
 		})
-		const data = await response.json()
-		return data
+		return response.status === 204 ? {} : response.json()
 	}
 }
 
