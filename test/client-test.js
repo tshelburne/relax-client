@@ -25,7 +25,7 @@ describe(`a basic client`, function() {
 		const [url, options] = fetchMock.calls()[0]
 		expect(url).to.equal(`https://api.test.com/v1/account?test=data`)
 		expect(options).to.deep.equal({
-			method: `get`,
+			method: `GET`,
 			headers: new Headers({}),
 			body: undefined,
 		})
@@ -41,7 +41,7 @@ describe(`a basic client`, function() {
 		const [url, options] = fetchMock.calls()[0]
 		expect(url).to.equal(`https://api.test.com/v1/account`)
 		expect(options).to.deep.equal({
-			method: `post`,
+			method: `POST`,
 			headers: new Headers({}),
 			body: `{"test":"data"}`,
 		})
@@ -57,7 +57,7 @@ describe(`a basic client`, function() {
 		const [url, options] = fetchMock.calls()[0]
 		expect(url).to.equal(`https://api.test.com/v1/account`)
 		expect(options).to.deep.equal({
-			method: `put`,
+			method: `PUT`,
 			headers: new Headers({}),
 			body: `{"test":"data"}`,
 		})
@@ -73,7 +73,7 @@ describe(`a basic client`, function() {
 		const [url, options] = fetchMock.calls()[0]
 		expect(url).to.equal(`https://api.test.com/v1/account`)
 		expect(options).to.deep.equal({
-			method: `patch`,
+			method: `PATCH`,
 			headers: new Headers({}),
 			body: `{"test":"data"}`,
 		})
@@ -89,7 +89,7 @@ describe(`a basic client`, function() {
 		const [url, options] = fetchMock.calls()[0]
 		expect(url).to.equal(`https://api.test.com/v1/account?test=data`)
 		expect(options).to.deep.equal({
-			method: `delete`,
+			method: `DELETE`,
 			headers: new Headers({}),
 			body: undefined,
 		})

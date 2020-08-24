@@ -22,7 +22,7 @@ describe(`using middlewares with the client`, function() {
 		const [url, options] = fetchMock.calls()[0]
 		expect(url).to.equal(`https://api.test.com/v1/account?test=data`)
 		expect(options).to.deep.equal({
-			method: `get`,
+			method: `GET`,
 			headers: new Headers({
 				'Content-Type': `application/json`,
 				Accept: `application/json`
@@ -42,7 +42,7 @@ describe(`using middlewares with the client`, function() {
 		const [url, options] = fetchMock.calls()[0]
 		expect(url).to.equal(`https://api.test.com/v1/account?test=data`)
 		expect(options).to.deep.equal({
-			method: `get`,
+			method: `GET`,
 			headers: new Headers({
 				'Content-Type': `application/json`,
 				Accept: `application/json`
@@ -62,7 +62,7 @@ describe(`using middlewares with the client`, function() {
 		const [url, options] = fetchMock.calls()[0]
 		expect(url).to.equal(`https://api.test.com/v1/account?test=data`)
 		expect(options).to.deep.equal({
-			method: `get`,
+			method: `GET`,
 			headers: new Headers({
 				Accept: `text/html`
 			}),
@@ -81,7 +81,7 @@ describe(`using middlewares with the client`, function() {
 		const [url, options] = fetchMock.calls()[0]
 		expect(url).to.equal(`https://api.test.com/v1/account?test=data`)
 		expect(options).to.deep.equal({
-			method: `get`,
+			method: `GET`,
 			headers: new Headers({
 				Accept: `text/html`
 			}),
@@ -100,7 +100,7 @@ describe(`using middlewares with the client`, function() {
 
 		const [url, options] = fetchMock.calls()[0]
 		expect(url).to.equal(`https://api.test.com/v1/account`)
-		expect(options.method).to.equal(`post`)
+		expect(options.method).to.equal(`POST`)
 		expect(options.headers).to.deep.equal(new Headers({'Content-Type': `multipart/form-data`}))
 		expect(options.body._streams[0]).to.contain(`name="test"`)
 		expect(options.body._streams[1]).to.equal(`data`)
@@ -124,7 +124,7 @@ describe(`using middlewares with the client`, function() {
 		const [url1, options1] = fetchMock.calls()[0]
 		expect(url1).to.equal(`https://api.test.com/v1/login`)
 		expect(options1).to.deep.equal({
-			method: `post`,
+			method: `POST`,
 			credentials: `include`,
 			headers: new Headers({
 				Authorization: ``,
@@ -135,7 +135,7 @@ describe(`using middlewares with the client`, function() {
 		const [url2, options2] = fetchMock.calls()[1]
 		expect(url2).to.equal(`https://api.test.com/v1/account`)
 		expect(options2).to.deep.equal({
-			method: `get`,
+			method: `GET`,
 			credentials: `include`,
 			headers: new Headers({
 				Authorization: `Bearer test-token`,
@@ -161,7 +161,7 @@ describe(`using middlewares with the client`, function() {
 
 		const [url1, options1] = fetchMock.calls()[0]
 		expect(url1).to.equal(`https://api.test.com/v1/login`)
-		expect(options1.method).to.equal(`post`)
+		expect(options1.method).to.equal(`POST`)
 		expect(options1.credentials).to.equal(`include`)
 		expect(options1.headers).to.deep.equal(new Headers({
 			'Content-Type': `multipart/form-data`,
@@ -176,7 +176,7 @@ describe(`using middlewares with the client`, function() {
 		const [url2, options2] = fetchMock.calls()[1]
 		expect(url2).to.equal(`https://api.test.com/v1/account`)
 		expect(options2).to.deep.equal({
-			method: `get`,
+			method: `GET`,
 			credentials: `include`,
 			headers: new Headers({
 				'Content-Type': `application/json`,
