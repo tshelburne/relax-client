@@ -77,8 +77,11 @@ function merge(obj1, obj2) {
 
 function send() {
 	return async (request) => {
-		const {url, headers, ...rest} = request
-		const response = await fetch(url, {...rest, headers: new Headers(headers)})
+		const {url, headers, method, ...rest} = request
+		const response = await fetch(url, {
+			...rest,
+			method: method.toUpperCase(),
+			headers: new Headers(headers)})
 		if (!response.ok) throw new RequestError(response)
 		return response
 	}
