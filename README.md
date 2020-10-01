@@ -96,6 +96,20 @@ client.use(custom())
 // client.get | client.post | etc.
 ```
 
+An individual request can also be configured to use a "one-off" middleware in the event it differs
+from the conventions of the API at large (eg. a particularly large request body needs compression).
+
+```js
+import create, {json} from 'relax-client'
+import gzip from 'relax-client/dist/middlewares/gzip'
+
+const {get, post} = create(`https://api.test.com/v1`, [ json() ])
+
+export const createAccount = (username, criminalRecord) =>
+	post(`account`, {username, criminalRecord}, { middlewares: [ gzip() ] })
+export const getAccount = () => get(`account`)
+```
+
 #### Gzip
 
 A gzip middleware for compressing request bodies is available, but it uses Pako, which is too large

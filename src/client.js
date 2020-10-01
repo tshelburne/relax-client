@@ -45,7 +45,7 @@ export class Client {
 		return this.request(`delete`, ...args)
 	}
 
-	request(method, rawPath, data = {}) {
+	request(method, rawPath, data = {}, opts = {}) {
 		const body = [`post`, `put`, `patch`].includes(method) ? JSON.stringify(data) : undefined
 
 		const [, path, search] = rawPath.match(/([^\?]*)\??(.*)?/)
@@ -53,7 +53,8 @@ export class Client {
 		const query = qs.stringify({...qs.parse(search), ...(body ? null : data)})
 		const url = `${this.apiRoot}/${encodedPath}${query && `?${query}`}` // eslint-disable-line no-undef
 
-		return run({url, method, body}, this[MIDDLEWARES].concat(send()))
+		const middlewares = this[MIDDLEWARES].concat(...(opts.middlewares || []), send())
+		return run({url, method, body}, middlewares)
 	}
 
 }

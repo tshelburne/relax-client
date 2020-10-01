@@ -2,6 +2,8 @@ import chai, {expect} from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 import fetchMock from 'fetch-mock'
 import create, {RequestError} from '../src/client'
+import json from '../src/middlewares/json'
+import form from '../src/middlewares/form'
 
 chai.use(chaiAsPromised)
 
@@ -93,6 +95,48 @@ describe(`a basic client`, function() {
 			headers: new Headers({}),
 			body: undefined,
 		})
+	})
+
+	it(`allows using one-off middlewares`, async function() {
+		fetchMock.post(`https://api.test.com/v1/account`, {data: true})
+
+		const response = await this.client.post(`account`, {test: `data`}, {
+			middlewares: [json()]
+		})
+
+		expect(response).to.deep.equal({data: true})
+
+		const [url, options] = fetchMock.calls()[0]
+		expect(url).to.equal(`https://api.test.com/v1/account`)
+		expect(options).to.deep.equal({
+			method: `POST`,
+			headers: new Headers({
+				'Content-Type': `application/json`,
+				Accept: `application/json`
+			}),
+			body: `{"test":"data"}`,
+		})
+	})
+
+	it(`appends one-off middlewares to existing ones`, async function() {
+		fetchMock.post(`https://api.test.com/v1/account`, {data: true})
+
+		this.client = create(`https://api.test.com/v1`, [json()])
+		const response = await this.client.post(`account`, {test: `data`}, {
+			middlewares: [form()]
+		})
+
+		expect(response).to.deep.equal({data: true})
+
+		const [url, options] = fetchMock.calls()[0]
+		expect(url).to.equal(`https://api.test.com/v1/account`)
+		expect(options.method).to.equal(`POST`)
+		expect(options.headers).to.deep.equal(new Headers({
+			'Content-Type': `multipart/form-data`,
+			Accept: `application/json`
+		}))
+		expect(options.body._streams[0]).to.contain(`name="test"`)
+		expect(options.body._streams[1]).to.equal(`data`)
 	})
 
 	it(`ignores the query string entirely`, async function() {
