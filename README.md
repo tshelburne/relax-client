@@ -95,3 +95,19 @@ client.use(custom())
 
 // client.get | client.post | etc.
 ```
+
+#### Gzip
+
+A gzip middleware for compressing request bodies is available, but it uses Pako, which is too large
+a library to include by default. Given that, it's not exposed from the index file, so it will need
+to be explicitly loaded from the dist directory.
+
+```js
+import create, {Client, json} from 'relax-client'
+import gzip from 'relax-client/dist/middlewares/gzip'
+
+const {get, post, put, destroy} = create(`https://api.test.com/v1`, [
+	json(),
+	gzip(),
+])
+```
