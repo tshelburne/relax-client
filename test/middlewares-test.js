@@ -125,10 +125,10 @@ describe(`using middlewares with the client`, function() {
 		expect(pako.ungzip(options.body, {to: 'string'})).to.equal(`{"prop1":{"data":true},"prop2":{"data":false},"prop3":{"data":true}}`)
 	})
 
-	it(`handles authorization via bearer token`, async function() {
+	it(`handles authorization via bearer token with localstorage strategy`, async function() {
 		const lsKey = `storagekey`
 		localStorage.removeItem(lsKey)
-		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(lsKey)])
+		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(lsKey, 'localstorage')])
 
 		fetchMock
 			.post(`https://api.test.com/v1/login`, {headers: {Authorization: `test-token`}})
@@ -158,6 +158,82 @@ describe(`using middlewares with the client`, function() {
 			credentials: `include`,
 			headers: new Headers({
 				Authorization: `Bearer test-token`,
+			}),
+			body: undefined,
+		})
+	})
+
+	it(`handles authorization via bearer token with cookie strategy`, async function() {
+		const lsKey = `storagekey`
+		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(lsKey, `cookie`)])
+
+		fetchMock
+			.post(`https://api.test.com/v1/login`, {headers: {Authorization: `test-token`}})
+			.get(`https://api.test.com/v1/account`, {data: true})
+
+		const loginRes = await post(`login`, {username: `user`, password: `pass`})
+		expect(loginRes.ok).to.be.true
+
+		const accountRes = await get(`account`)
+		expect(accountRes.ok).to.be.true
+
+		const [url1, options1] = fetchMock.calls()[0]
+		expect(url1).to.equal(`https://api.test.com/v1/login`)
+		expect(options1).to.deep.equal({
+			method: `POST`,
+			credentials: `include`,
+			headers: new Headers({
+				Authorization: ``,
+			}),
+			body: `{"username":"user","password":"pass"}`,
+		})
+
+		const [url2, options2] = fetchMock.calls()[1]
+		expect(url2).to.equal(`https://api.test.com/v1/account`)
+		expect(options2).to.deep.equal({
+			method: `GET`,
+			credentials: `include`,
+			headers: new Headers({
+				Authorization: `Bearer test-token`,
+				"Set-Cookie": `storagekey=test-token`
+			}),
+			body: undefined,
+		})
+	})
+
+	it(`handles authorization via bearer token with custom strategy`, async function() {
+		const lsKey = `storagekey`
+
+		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(lsKey, {read: (key) => localStorage.getItem(`custom-${key}`), write: (key) => localStorage.setItem(`custom-${key}`)})])
+
+		fetchMock
+			.post(`https://api.test.com/v1/login`, {headers: {Authorization: `test-token`}})
+			.get(`https://api.test.com/v1/account`, {data: true})
+
+		const loginRes = await post(`login`, {username: `user`, password: `pass`})
+		expect(loginRes.ok).to.be.true
+
+		const accountRes = await get(`account`)
+		expect(accountRes.ok).to.be.true
+
+		const [url1, options1] = fetchMock.calls()[0]
+		expect(url1).to.equal(`https://api.test.com/v1/login`)
+		expect(options1).to.deep.equal({
+			method: `POST`,
+			credentials: `include`,
+			headers: new Headers({
+				Authorization: ``,
+			}),
+			body: `{"username":"user","password":"pass"}`,
+		})
+
+		const [url2, options2] = fetchMock.calls()[1]
+		expect(url2).to.equal(`https://api.test.com/v1/account`)
+		expect(options2).to.deep.equal({
+			method: `GET`,
+			credentials: `include`,
+			headers: new Headers({
+				Authorization: `Bearer custom-test-token`,
 			}),
 			body: undefined,
 		})
