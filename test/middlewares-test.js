@@ -134,7 +134,7 @@ describe(`using middlewares with the client`, function() {
 	it(`handles authorization via bearer token`, async function() {
 		const lsKey = `storagekey`
 		localStorage.removeItem(lsKey)
-		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(lsKey, 'localstorage')])
+		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(lsKey)])
 
 		fetchMock
 			.post(`https://api.test.com/v1/login`, {headers: {Authorization: `test-token`}})
@@ -161,9 +161,150 @@ describe(`using middlewares with the client`, function() {
 		expect(options2).to.deep.equal({
 			method: `GET`,
 			credentials: `include`,
-			headers: new Headers({
-				Authorization: `Bearer test-token`,
-			}),
+			headers,
+			body: undefined,
+		})
+		checkDeepEqualHeaders(options2.headers, { 'Authorization': `Bearer test-token` })
+	})
+
+	it(`handles authorization via bearer token with custom header`, async function() {
+		const lsKey = `storagekey`
+		localStorage.removeItem(lsKey)
+		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(lsKey, {header: 'Some-Kind-Of-Auth', store: 'localstorage'})])
+
+		fetchMock
+			.post(`https://api.test.com/v1/login`, {headers: {'Some-Kind-Of-Auth': `test-token`}})
+			.get(`https://api.test.com/v1/account`, {data: true})
+
+		const loginRes = await post(`login`, {username: `user`, password: `pass`})
+		expect(loginRes.ok).to.be.true
+
+		const accountRes = await get(`account`)
+		expect(accountRes.ok).to.be.true
+
+		const [url1, options1] = fetchMock.calls()[0]
+		expect(url1).to.equal(`https://api.test.com/v1/login`)
+		expect(options1).to.deep.equal({
+			method: `POST`,
+			credentials: `include`,
+			headers,
+			body: `{"username":"user","password":"pass"}`,
+		})
+		checkDeepEqualHeaders(options1.headers, { 'Some-Kind-Of-Auth': `` })
+
+		const [url2, options2] = fetchMock.calls()[1]
+		expect(url2).to.equal(`https://api.test.com/v1/account`)
+		expect(options2).to.deep.equal({
+			method: `GET`,
+			credentials: `include`,
+			headers,
+			body: undefined,
+		})
+		checkDeepEqualHeaders(options2.headers, { 'Some-Kind-Of-Auth': `Bearer test-token` })
+	})
+
+	xit(`handles authorization via bearer token with cookie store`, async function() {
+		const lsKey = `storagekey`
+		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(lsKey, {header: 'Authorization', store: 'cookie'})])
+
+		fetchMock
+			.post(`https://api.test.com/v1/login`, {headers: {Authorization: `test-token`}})
+			.get(`https://api.test.com/v1/account`, {data: true})
+
+		const loginRes = await post(`login`, {username: `user`, password: `pass`})
+		expect(loginRes.ok).to.be.true
+
+		const accountRes = await get(`account`)
+		expect(accountRes.ok).to.be.true
+
+		const [url1, options1] = fetchMock.calls()[0]
+		expect(url1).to.equal(`https://api.test.com/v1/login`)
+		expect(options1).to.deep.equal({
+			method: `POST`,
+			credentials: `include`,
+			headers,
+			body: `{"username":"user","password":"pass"}`,
+		})
+		checkDeepEqualHeaders(options1.headers, { 'Authorization': `` })
+
+		const [url2, options2] = fetchMock.calls()[1]
+		expect(url2).to.equal(`https://api.test.com/v1/account`)
+		expect(options2).to.deep.equal({
+			method: `GET`,
+			credentials: `include`,
+			headers,
+			body: undefined,
+		})
+		checkDeepEqualHeaders(options2.headers, { 'Authorization': `Bearer test-token` })
+	})
+
+	it(`handles authorization via bearer token with memory store`, async function() {
+		const lsKey = `storagekey`
+		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(lsKey, {header: 'Authorization', store: 'memory'})])
+
+		fetchMock
+			.post(`https://api.test.com/v1/login`, {headers: {Authorization: `test-token`}})
+			.get(`https://api.test.com/v1/account`, {data: true})
+
+		const loginRes = await post(`login`, {username: `user`, password: `pass`})
+		expect(loginRes.ok).to.be.true
+
+		const accountRes = await get(`account`)
+		expect(accountRes.ok).to.be.true
+
+		const [url1, options1] = fetchMock.calls()[0]
+		expect(url1).to.equal(`https://api.test.com/v1/login`)
+		expect(options1).to.deep.equal({
+			method: `POST`,
+			credentials: `include`,
+			headers,
+			body: `{"username":"user","password":"pass"}`,
+		})
+		checkDeepEqualHeaders(options1.headers, { 'Authorization': `` })
+
+		const [url2, options2] = fetchMock.calls()[1]
+		expect(url2).to.equal(`https://api.test.com/v1/account`)
+		expect(options2).to.deep.equal({
+			method: `GET`,
+			credentials: `include`,
+			headers,
+			body: undefined,
+		})
+		checkDeepEqualHeaders(options2.headers, { 'Authorization': `Bearer test-token` })
+	})
+
+	it(`handles authorization via bearer token with custom store`, async function() {
+		const someStore = {}
+
+		const lsKey = `storagekey`
+		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(lsKey, {header: 'Authorization', store: {read: (k) => someStore[k], write: (k, v) => someStore[k] = v}})])
+
+		fetchMock
+			.post(`https://api.test.com/v1/login`, {headers: {Authorization: `test-token`}})
+			.get(`https://api.test.com/v1/account`, {data: true})
+
+		const loginRes = await post(`login`, {username: `user`, password: `pass`})
+		expect(loginRes.ok).to.be.true
+
+		const accountRes = await get(`account`)
+		expect(accountRes.ok).to.be.true
+
+		const [url1, options1] = fetchMock.calls()[0]
+		expect(url1).to.equal(`https://api.test.com/v1/login`)
+		expect(options1).to.deep.equal({
+			method: `POST`,
+			credentials: `include`,
+			headers,
+			body: `{"username":"user","password":"pass"}`,
+		})
+		checkDeepEqualHeaders(options1.headers, { 'Authorization': `` })
+
+		const [url2, options2] = fetchMock.calls()[1]
+		expect(url2).to.equal(`https://api.test.com/v1/account`)
+		expect(options2).to.deep.equal({
+			method: `GET`,
+			credentials: `include`,
+			headers,
 			body: undefined,
 		})
 		checkDeepEqualHeaders(options2.headers, { 'Authorization': `Bearer test-token` })
