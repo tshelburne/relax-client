@@ -4,10 +4,16 @@ import fetchMock from 'fetch-mock'
 import create, {RequestError} from '../src/client'
 import json from '../src/middlewares/json'
 import form from '../src/middlewares/form'
+import { checkDeepEqualHeaders } from './utils'
 
 chai.use(chaiAsPromised)
 
 describe(`a basic client`, function() {
+
+	// This is a generic header object since deep equal comparisons don't work
+	// on this object. We ensure our expectation by getting the header values
+	// specifically and checking equality.
+	const headers = new Headers({})
 
 	beforeEach(function() {
 		this.client = create(`https://api.test.com/v1`)
@@ -28,7 +34,7 @@ describe(`a basic client`, function() {
 		expect(url).to.equal(`https://api.test.com/v1/account?test=data`)
 		expect(options).to.deep.equal({
 			method: `GET`,
-			headers: new Headers({}),
+			headers,
 			body: undefined,
 		})
 	})
@@ -44,7 +50,7 @@ describe(`a basic client`, function() {
 		expect(url).to.equal(`https://api.test.com/v1/account`)
 		expect(options).to.deep.equal({
 			method: `POST`,
-			headers: new Headers({}),
+			headers,
 			body: `{"test":"data"}`,
 		})
 	})
@@ -60,7 +66,7 @@ describe(`a basic client`, function() {
 		expect(url).to.equal(`https://api.test.com/v1/account`)
 		expect(options).to.deep.equal({
 			method: `PUT`,
-			headers: new Headers({}),
+			headers,
 			body: `{"test":"data"}`,
 		})
 	})
@@ -76,7 +82,7 @@ describe(`a basic client`, function() {
 		expect(url).to.equal(`https://api.test.com/v1/account`)
 		expect(options).to.deep.equal({
 			method: `PATCH`,
-			headers: new Headers({}),
+			headers,
 			body: `{"test":"data"}`,
 		})
 	})
@@ -92,7 +98,7 @@ describe(`a basic client`, function() {
 		expect(url).to.equal(`https://api.test.com/v1/account?test=data`)
 		expect(options).to.deep.equal({
 			method: `DELETE`,
-			headers: new Headers({}),
+			headers,
 			body: undefined,
 		})
 	})
@@ -110,11 +116,12 @@ describe(`a basic client`, function() {
 		expect(url).to.equal(`https://api.test.com/v1/account`)
 		expect(options).to.deep.equal({
 			method: `POST`,
-			headers: new Headers({
-				'Content-Type': `application/json`,
-				Accept: `application/json`
-			}),
+			headers,
 			body: `{"test":"data"}`,
+		})
+		checkDeepEqualHeaders(options.headers, {
+			'Content-Type': `application/json`,
+			'Accept': `application/json`
 		})
 	})
 
@@ -131,10 +138,10 @@ describe(`a basic client`, function() {
 		const [url, options] = fetchMock.calls()[0]
 		expect(url).to.equal(`https://api.test.com/v1/account`)
 		expect(options.method).to.equal(`POST`)
-		expect(options.headers).to.deep.equal(new Headers({
+		checkDeepEqualHeaders(options.headers, {
 			'Content-Type': `multipart/form-data`,
-			Accept: `application/json`
-		}))
+			'Accept': `application/json`
+		})
 		expect(options.body._streams[0]).to.contain(`name="test"`)
 		expect(options.body._streams[1]).to.equal(`data`)
 	})
