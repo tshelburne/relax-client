@@ -113,8 +113,8 @@ export const getAccount = () => get(`account`)
 #### Bearer Auth
 
 The bearer auth middleware can be used to automatically configure all requests to the API with
-authentication headers. By default, it stores auth tokens in `localStorage`, but can be configured
-according to your use case.
+authentication headers. By default, it uses the `Authorization` header and stores auth tokens
+in `localStorage`, but can be configured according to your use case.
 
 ```js
 import create, {bearerAuth} from 'relax-client'
@@ -132,13 +132,16 @@ const authMiddleware = bearerAuth(`storage-key`, {store: 'cookie'})
 const authMiddleware = bearerAuth(`storage-key`, {store: bearerAuth.THIS_SESSION})
 const authMiddleware = bearerAuth(`storage-key`, {store: 'memory'})
 
+// this will use X-Auth-Token as both the request and response header for the token
+const authMiddleware = bearerAuth(`storage-key`, {header: `X-Auth-Token`})
+
 // client usage
 const client = create(`https://api.test.com/v1`, [ authMiddleware ])
 
-// this should return a response with an Authorization header containing an auth token
+// this should return a response with an Authorization (or custom) header containing an auth token
 await client.post('/login', {username, password})
 
-// all subsequent requests will automatically contain an Authorization header with the token
+// all subsequent requests will automatically contain an Authorization (or custom) header with the token
 const res = await client.get('/account')
 ```
 

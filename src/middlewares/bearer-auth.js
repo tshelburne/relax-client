@@ -17,7 +17,7 @@ const stores = {
 	}
 }
 
-function bearerAuth(tokenKey, {store = 'localstorage'} = {}) {
+function bearerAuth(tokenKey, {header = 'Authorization', store = 'localstorage'} = {}) {
 	return async (_, next) => {
 		const {read, write} = typeof store === 'object' ? store : stores[store]
 
@@ -25,12 +25,12 @@ function bearerAuth(tokenKey, {store = 'localstorage'} = {}) {
 		const response = await next({
 			credentials: `include`,
 			headers: {
-				Authorization: token ? `Bearer ${token}` : ``,
+				[header]: token ? `Bearer ${token}` : ``,
 			}
 		})
 
-		if (response.headers.has(`Authorization`)) {
-			await write(tokenKey, response.headers.get(`Authorization`))
+		if (response.headers.has(header)) {
+			await write(tokenKey, response.headers.get(header))
 		}
 
 		return response
