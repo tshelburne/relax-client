@@ -1,28 +1,27 @@
-import cookies from 'cookie'
+const stores = {
+	cookie: {
+		read: (k) => {
+			const res = document.cookie.match(new RegExp(`${k}=([^;]*)`))
+			return res ? res[1] : null
+		},
+		write: (k, v) => document.cookie = `${k}=${v}`,
+	},
+	localstorage: {
+		read: localStorage.getItem,
+		write: localStorage.setItem,
+	},
+	memory: {
+		_store: {},
+		read: (k) => stores.memory._store[k],
+		write: (k, v) => stores.memory._store[k] = v,
+	}
+}
 
-function bearerAuth(tokenKey, strategy = 'localstorage') {
-	return async ({cookie = ''}, next) => {
-		let read, write
+function bearerAuth(tokenKey, {store = 'localstorage'} = {}) {
+	return async (_, next) => {
+		const {read, write} = typeof store === 'object' ? store : stores[store]
 
-		if (typeof strategy === 'object') {
-			read = strategy.read
-			write = strategy.write
-		} else {
-			switch (strategy) {
-				case 'cookie':
-					read = (key) => cookies.parse(cookie)[key]
-					write = cookies.serialize
-					break
-
-				case 'localstorage':
-				default:
-					read = localStorage.getItem
-					write = localStorage.setItem
-					break
-			}
-		}
-
-		const token = read(tokenKey)
+		const token = await read(tokenKey)
 		const response = await next({
 			credentials: `include`,
 			headers: {
@@ -31,15 +30,15 @@ function bearerAuth(tokenKey, strategy = 'localstorage') {
 		})
 
 		if (response.headers.has(`Authorization`)) {
-			if (strategy === 'cookie') {
-				response.headers['Set-Cookie'] = write(tokenKey, response.headers.get(`Authorization`))
-			} else {
-				write(tokenKey, response.headers.get(`Authorization`))
-			}
+			await write(tokenKey, response.headers.get(`Authorization`))
 		}
 
 		return response
 	}
 }
+
+bearerAuth.ALL_SUBDOMAINS = 'cookie'
+bearerAuth.THIS_SUBDOMAIN = 'localstorage'
+bearerAuth.THIS_SESSION = 'memory'
 
 export default bearerAuth

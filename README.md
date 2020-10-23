@@ -110,6 +110,38 @@ export const createAccount = (username, criminalRecord) =>
 export const getAccount = () => get(`account`)
 ```
 
+#### Bearer Auth
+
+The bearer auth middleware can be used to automatically configure all requests to the API with
+authentication headers. By default, it stores auth tokens in `localStorage`, but can be configured
+according to your use case.
+
+```js
+import create, {bearerAuth} from 'relax-client'
+
+// the following all store an auth token in local storage
+const authMiddleware = bearerAuth(`storage-key`)
+const authMiddleware = bearerAuth(`storage-key`, {storage: bearerAuth.THIS_SUBDOMAIN})
+const authMiddleware = bearerAuth(`storage-key`, {storage: 'localstorage'})
+
+// the following all store an auth token in a cookie
+const authMiddleware = bearerAuth(`storage-key`, {storage: bearerAuth.ALL_SUBDOMAINS})
+const authMiddleware = bearerAuth(`storage-key`, {storage: 'cookie'})
+
+// the following all store an auth token in memory
+const authMiddleware = bearerAuth(`storage-key`, {storage: bearerAuth.THIS_SESSION})
+const authMiddleware = bearerAuth(`storage-key`, {storage: 'memory'})
+
+// client usage
+const client = create(`https://api.test.com/v1`, [ authMiddleware ])
+
+// this should return a response with an Authorization header containing an auth token
+await client.post('/login', {username, password})
+
+// all subsequent requests will automatically contain an Authorization header with the token
+const res = await client.get('/account')
+```
+
 #### Gzip
 
 A gzip middleware for compressing request bodies is available, but it uses Pako, which is too large
