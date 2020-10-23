@@ -121,16 +121,16 @@ import create, {bearerAuth} from 'relax-client'
 
 // the following all store an auth token in local storage
 const authMiddleware = bearerAuth(`storage-key`)
-const authMiddleware = bearerAuth(`storage-key`, {storage: bearerAuth.THIS_SUBDOMAIN})
-const authMiddleware = bearerAuth(`storage-key`, {storage: 'localstorage'})
+const authMiddleware = bearerAuth(`storage-key`, {store: bearerAuth.THIS_SUBDOMAIN})
+const authMiddleware = bearerAuth(`storage-key`, {store: 'localstorage'})
 
 // the following all store an auth token in a cookie
-const authMiddleware = bearerAuth(`storage-key`, {storage: bearerAuth.ALL_SUBDOMAINS})
-const authMiddleware = bearerAuth(`storage-key`, {storage: 'cookie'})
+const authMiddleware = bearerAuth(`storage-key`, {store: bearerAuth.ALL_SUBDOMAINS})
+const authMiddleware = bearerAuth(`storage-key`, {store: 'cookie'})
 
 // the following all store an auth token in memory
-const authMiddleware = bearerAuth(`storage-key`, {storage: bearerAuth.THIS_SESSION})
-const authMiddleware = bearerAuth(`storage-key`, {storage: 'memory'})
+const authMiddleware = bearerAuth(`storage-key`, {store: bearerAuth.THIS_SESSION})
+const authMiddleware = bearerAuth(`storage-key`, {store: 'memory'})
 
 // client usage
 const client = create(`https://api.test.com/v1`, [ authMiddleware ])
@@ -140,6 +140,25 @@ await client.post('/login', {username, password})
 
 // all subsequent requests will automatically contain an Authorization header with the token
 const res = await client.get('/account')
+```
+
+The store config value can also be an object with functions `read` and `write`. In that case, `read`
+will take the storage key as an argument, and `write` will take both the storage key and token value.
+Either or both functions can return a simple value or a promise. In the example below, some tokens
+service is responsible both for generating the key that's used and for reading / writing to some
+other custom storage location.
+
+```js
+import create, {bearerAuth} from 'relax-client'
+import tokens from './services/tokens'
+
+// the following all store an auth token in local storage
+const authMiddleware = bearerAuth(tokens.getKey(), {
+	store: {
+		read: (k) => tokens.get(k),
+		write: (k, v) => tokens.put(k, v),
+	}
+})
 ```
 
 #### Gzip
