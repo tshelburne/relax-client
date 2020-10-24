@@ -1,11 +1,8 @@
 import chai, {expect} from 'chai'
-import chaiAsPromised from 'chai-as-promised'
 import fetchMock from 'fetch-mock'
 import create, {RequestError} from '../src/client'
 import json from '../src/middlewares/json'
 import form from '../src/middlewares/form'
-
-chai.use(chaiAsPromised)
 
 describe(`a basic client`, function() {
 

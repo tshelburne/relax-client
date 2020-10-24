@@ -1,11 +1,8 @@
 import chai, {expect} from 'chai'
-import chaiAsPromised from 'chai-as-promised'
 import fetchMock from 'fetch-mock'
 import pako from 'pako'
 import create, {RequestError, json, html, blob, form, bearerAuth} from '../src/index'
 import gzip from '../src/middlewares/gzip'
-
-chai.use(chaiAsPromised)
 
 describe(`using middlewares with the client`, function() {
 

@@ -4,5 +4,6 @@
 -r mock-local-storage
 -r jsdom-global/register
 -r isomorphic-form-data
+--file ./test/setup-chai.js
 --file ./test/setup-fetch-mock.js
 --recursive
