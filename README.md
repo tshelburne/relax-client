@@ -110,6 +110,60 @@ export const createAccount = (username, criminalRecord) =>
 export const getAccount = () => get(`account`)
 ```
 
+#### Bearer Auth
+
+The bearer auth middleware can be used to automatically configure all requests to the API with
+authentication headers. By default, it uses the `Authorization` header and stores auth tokens
+in `localStorage`, but can be configured according to your use case.
+
+```js
+import create, {bearerAuth} from 'relax-client'
+
+// the following all store an auth token in local storage
+const authMiddleware = bearerAuth(`storage-key`)
+const authMiddleware = bearerAuth(`storage-key`, {store: bearerAuth.THIS_SUBDOMAIN})
+const authMiddleware = bearerAuth(`storage-key`, {store: 'localstorage'})
+
+// the following all store an auth token in a cookie
+const authMiddleware = bearerAuth(`storage-key`, {store: bearerAuth.ALL_SUBDOMAINS})
+const authMiddleware = bearerAuth(`storage-key`, {store: 'cookie'})
+
+// the following all store an auth token in memory
+const authMiddleware = bearerAuth(`storage-key`, {store: bearerAuth.THIS_SESSION})
+const authMiddleware = bearerAuth(`storage-key`, {store: 'memory'})
+
+// this will use X-Auth-Token as both the request and response header for the token
+const authMiddleware = bearerAuth(`storage-key`, {header: `X-Auth-Token`})
+
+// client usage
+const client = create(`https://api.test.com/v1`, [ authMiddleware ])
+
+// this should return a response with an Authorization (or custom) header containing an auth token
+await client.post('/login', {username, password})
+
+// all subsequent requests will automatically contain an Authorization (or custom) header with the token
+const res = await client.get('/account')
+```
+
+The store config value can also be an object with functions `read` and `write`. In that case, `read`
+will take the storage key as an argument, and `write` will take both the storage key and token value.
+Either or both functions can return a simple value or a promise. In the example below, some tokens
+service is responsible both for generating the key that's used and for reading / writing to some
+other custom storage location.
+
+```js
+import create, {bearerAuth} from 'relax-client'
+import tokens from './services/tokens'
+
+// the following all store an auth token in local storage
+const authMiddleware = bearerAuth(tokens.getKey(), {
+	store: {
+		read: (k) => tokens.get(k),
+		write: (k, v) => tokens.put(k, v),
+	}
+})
+```
+
 #### Gzip
 
 A gzip middleware for compressing request bodies is available, but it uses Pako, which is too large
