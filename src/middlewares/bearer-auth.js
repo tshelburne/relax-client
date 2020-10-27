@@ -7,8 +7,8 @@ const stores = {
 		write: (k, v) => document.cookie = `${k}=${v}`,
 	},
 	localstorage: {
-		read: localStorage.getItem,
-		write: localStorage.setItem,
+		read: (k) => localStorage.getItem(k),
+		write: (k, v) => localStorage.setItem(k, v),
 	},
 	memory: {
 		_store: {},
