@@ -4,7 +4,10 @@ const stores = {
 			const res = document.cookie.match(new RegExp(`${k}=([^;]*)`))
 			return res ? res[1] : null
 		},
-		write: (k, v) => document.cookie = `${k}=${v}`,
+		write: (k, v, o) => {
+			const options = Object.entries(o).map(([ok, ov]) => `${ok}=${ov};`)
+			return document.cookie = `${k}=${v};${options.join('')}`
+		},
 	},
 	localstorage: {
 		read: (k) => localStorage.getItem(k),
@@ -17,7 +20,7 @@ const stores = {
 	}
 }
 
-function bearerAuth(tokenKey, {header = 'Authorization', store = 'localstorage'} = {}) {
+function bearerAuth(tokenKey, {header = 'Authorization', store = 'localstorage', options = {}} = {}) {
 	return async (_, next) => {
 		const {read, write} = typeof store === 'object' ? store : stores[store]
 
@@ -30,7 +33,7 @@ function bearerAuth(tokenKey, {header = 'Authorization', store = 'localstorage'}
 		})
 
 		if (response.headers.has(header)) {
-			await write(tokenKey, response.headers.get(header))
+			await write(tokenKey, response.headers.get(header), options)
 		}
 
 		return response

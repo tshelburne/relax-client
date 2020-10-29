@@ -183,6 +183,33 @@ describe(`using middlewares with the client`, function() {
 		expect(accountRes.ok).to.be.true
 	})
 
+	it(`handles authorization via bearer token with cookie store and options`, async function() {
+		const tokenKey = `storagekey`
+		document.cookie = `${tokenKey}=;`
+		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(tokenKey, {store: 'cookie'}, {domain: 'test.com', "max-age": 3600})])
+
+		fetchMock
+			.post({
+				url: `https://api.test.com/v1/login`,
+				headers: {Authorization: ''},
+				credentials: true,
+				rawBody: '{"username":"user","password":"pass"}',
+				response: {headers: {Authorization: `test-token`}}
+			})
+			.get({
+				url: `https://api.test.com/v1/account`,
+				headers: {Authorization: 'Bearer test-token'},
+				credentials: true,
+				response: {data: true}
+			})
+
+		const loginRes = await post(`login`, {username: `user`, password: `pass`})
+		expect(loginRes.ok).to.be.true
+
+		const accountRes = await get(`account`)
+		expect(accountRes.ok).to.be.true
+	})
+
 	it(`handles authorization via bearer token with memory store`, async function() {
 		const tokenKey = `storagekey`
 		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(tokenKey, {store: 'memory'})])
