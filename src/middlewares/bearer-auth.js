@@ -5,9 +5,12 @@ const stores = {
 			return res ? res[1] : null
 		},
 		write: (k, v, o) => {
-			const options = Object.entries(o).map(([ok, ov]) => `${ok}=${ov};`)
+			const allowedParams = [`domain`]
+			const options = Object.entries(o)
+				.filter(([ok]) => allowedParams.includes(ok))
+				.map(([ok, ov]) => `${ok}=${ov};`)
 			return document.cookie = `${k}=${v};${options.join('')}`
-		},
+		}
 	},
 	localstorage: {
 		read: (k) => localStorage.getItem(k),
