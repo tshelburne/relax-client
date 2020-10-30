@@ -2,8 +2,8 @@
 -r mocha-clean
 -r isomorphic-fetch
 -r mock-local-storage
--r jsdom-global/register
 -r isomorphic-form-data
 --file ./test/setup-chai.js
 --file ./test/setup-fetch-mock.js
+--file ./test/setup-jsdom.js
 --recursive

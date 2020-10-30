@@ -3,10 +3,16 @@ import fetchMock from 'fetch-mock'
 import pako from 'pako'
 import create, {RequestError, json, html, blob, form, bearerAuth} from '../src/index'
 import gzip from '../src/middlewares/gzip'
+import spyOnCookies from 'spy-on-cookies'
 
 describe(`using middlewares with the client`, function() {
 
+	beforeEach(function() {
+		this.cookie = spyOnCookies()
+	})
+
 	afterEach(function() {
+		this.cookie.restore()
 		fetchMock.reset()
 	})
 
@@ -158,7 +164,6 @@ describe(`using middlewares with the client`, function() {
 
 	it(`handles authorization via bearer token with cookie store`, async function() {
 		const tokenKey = `storagekey`
-		document.cookie = `${tokenKey}=;`
 		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(tokenKey, {store: 'cookie'})])
 
 		fetchMock
@@ -181,6 +186,36 @@ describe(`using middlewares with the client`, function() {
 
 		const accountRes = await get(`account`)
 		expect(accountRes.ok).to.be.true
+
+		expect(this.cookie.calls).to.deep.equal(["storagekey=test-token;"])
+	})
+
+	it(`handles authorization via bearer token with cookie store and options`, async function() {
+		const tokenKey = `storagekey2`
+		const {get, post} = create(`https://api.test.com/v1`, [bearerAuth(tokenKey, {store: 'cookie', options: {domain: 'test.com', "max-age": 3600}})])
+
+		fetchMock
+			.post({
+				url: `https://api.test.com/v1/login`,
+				headers: {Authorization: ''},
+				credentials: true,
+				rawBody: '{"username":"user","password":"pass"}',
+				response: {headers: {Authorization: `test-token`}}
+			})
+			.get({
+				url: `https://api.test.com/v1/account`,
+				headers: {Authorization: 'Bearer test-token'},
+				credentials: true,
+				response: {data: true}
+			})
+
+		const loginRes = await post(`login`, {username: `user`, password: `pass`})
+		expect(loginRes.ok).to.be.true
+
+		const accountRes = await get(`account`)
+		expect(accountRes.ok).to.be.true
+
+		expect(this.cookie.calls).to.deep.equal(["storagekey2=test-token;domain=test.com;"])
 	})
 
 	it(`handles authorization via bearer token with memory store`, async function() {
