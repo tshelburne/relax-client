@@ -47,7 +47,8 @@
     "jsdom-global": "^3.0.2",
     "mocha": "^6.2.3",
     "mocha-clean": "^1.0.0",
-    "mock-local-storage": "^1.1.15"
+    "mock-local-storage": "^1.1.15",
+    "spy-on-cookies": "^0.1.2"
   },
   "babel": {
     "presets": [
