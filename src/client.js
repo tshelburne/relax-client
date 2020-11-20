@@ -1,8 +1,8 @@
 import qs from 'qs'
 import deepmerge from 'deepmerge'
 
-function create(apiRoot, middlewares = []) {
-	const client = new Client(apiRoot)
+function create(apiRoot, middlewares = [], options = {}) {
+	const client = new Client(apiRoot, options)
 	middlewares.forEach((fn) => client.use(fn))
 	return [`get`, `post`, `put`, `patch`, `destroy`].reduce((acc, k) => ({
 		...acc,
@@ -16,8 +16,9 @@ const MIDDLEWARES = Symbol(`MIDDLEWARES`)
 
 export class Client {
 
-	constructor(apiRoot) {
+	constructor(apiRoot, options = {}) {
 		this.apiRoot = apiRoot
+		this.options = options
 		this[MIDDLEWARES] = []
 	}
 
@@ -50,7 +51,8 @@ export class Client {
 
 		const [, path, search] = rawPath.match(/([^\?]*)\??(.*)?/)
 		const encodedPath = path.split(`/`).filter(v => v).map(encodeURIComponent).join(`/`)
-		const query = qs.stringify({...qs.parse(search), ...(body ? null : data)})
+		const parsedQs = qs.parse(search, this.options.qs?.parse)
+		const query = qs.stringify({...parsedQs, ...(body ? null : data)}, this.options.qs?.stringify)
 		const url = `${this.apiRoot}/${encodedPath}${query && `?${query}`}` // eslint-disable-line no-undef
 
 		const middlewares = this[MIDDLEWARES].concat(...(opts.middlewares || []), send())

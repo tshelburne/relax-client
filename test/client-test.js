@@ -133,6 +133,26 @@ describe(`a basic client`, function() {
 		expect(response.status).to.equal(200)
 	})
 
+	it(`handles custom qs options`, async function() {
+		fetchMock.get({
+			url: `https://api.test.com/v1/query?test%5B0%5D=one&test%5B1%5D=two&test%5B2%5D=three`,
+			response: 200,
+		})
+		fetchMock.get({
+			url: `https://api.query-test.com/v1/query?test=one&test=two&test=three`,
+			response: 200,
+		})
+
+		const defaultResponse = await this.client.get(`query`, {test: ['one', 'two', 'three']})
+		expect(defaultResponse.ok).to.be.true
+		expect(defaultResponse.status).to.equal(200)
+
+		const optionsClient = create(`https://api.query-test.com/v1`, [], {qs: {stringify: {indices: false}}})
+		const optionsResponse = await optionsClient.get(`query`, {test: ['one', 'two', 'three']})
+		expect(optionsResponse.ok).to.be.true
+		expect(optionsResponse.status).to.equal(200)
+	})
+
 	it(`throws on requests with failure status codes`, function() {
 		fetchMock.get({
 			url: `https://api.test.com/v1/account`,
