@@ -1,4 +1,6 @@
-function form() {
+import {Middleware} from '../client.ts'
+
+function form(): Middleware {
 	return ({method, body}, next) => {
 		if (![`post`, `put`].includes(method)) return next()
 

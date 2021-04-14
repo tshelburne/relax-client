@@ -1,29 +1,41 @@
-const stores = {
+import {Middleware} from '../client.ts'
+
+interface Store {
+	read: (k: string) => Promise<string>
+	write: (k: string, v: string, o?: unknown) => Promise<any>
+}
+
+const memory: Record<string, any> = {}
+const stores: Record<'cookie' | 'localstorage' | 'memory', Store> = {
 	cookie: {
-		read: (k) => {
+		read: async (k) => {
 			const res = document.cookie.match(new RegExp(`${k}=([^;]*)`))
 			return res ? res[1] : null
 		},
-		write: (k, v, o) => {
+		write: async (k, v, o) => {
 			const allowedParams = [`domain`]
 			const options = Object.entries(o)
 				.filter(([ok]) => allowedParams.includes(ok))
 				.map(([ok, ov]) => `${ok}=${ov};`)
-			return document.cookie = `${k}=${v};${options.join('')}`
+			document.cookie = `${k}=${v};${options.join('')}`
 		}
 	},
 	localstorage: {
-		read: (k) => localStorage.getItem(k),
-		write: (k, v) => localStorage.setItem(k, v),
+		read: async (k) => localStorage.getItem(k),
+		write: async (k, v) => localStorage.setItem(k, v),
 	},
 	memory: {
-		_store: {},
-		read: (k) => stores.memory._store[k],
-		write: (k, v) => stores.memory._store[k] = v,
+		read: async (k) => memory[k],
+		write: async (k, v) => memory[k] = v,
 	}
 }
 
-function bearerAuth(tokenKey, {header = 'Authorization', store = 'localstorage', options = {}} = {}) {
+interface Opts {
+	header: string
+	store: keyof typeof stores | Store
+	options: {}
+}
+function bearerAuth(tokenKey: string, {header = 'Authorization', store = 'localstorage', options = {}} = {}): Middleware {
 	return async (_, next) => {
 		const {read, write} = typeof store === 'object' ? store : stores[store]
 
