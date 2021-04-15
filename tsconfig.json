@@ -1,0 +1,10 @@
+{
+    "extends": "@tsconfig/recommended/tsconfig.json",
+    "compilerOptions": {
+        "allowJs": false,
+        "lib": ["ES2017", "DOM"],
+        "outDir": "dist",
+        "declaration": true
+    },
+    "include": ["src/**/*"]
+}

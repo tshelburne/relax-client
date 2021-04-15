@@ -1,8 +1,8 @@
-import {Middleware} from '../client.ts'
+import {Middleware} from '../client'
 
 interface Store {
-	read: (k: string) => Promise<string>
-	write: (k: string, v: string, o?: unknown) => Promise<any>
+	read: (k: string) => Promise<string | null>
+	write: (k: string, v: string, o?: any) => Promise<any>
 }
 
 const memory: Record<string, any> = {}
@@ -31,13 +31,13 @@ const stores: Record<'cookie' | 'localstorage' | 'memory', Store> = {
 }
 
 interface Opts {
-	header: string
-	store: keyof typeof stores | Store
-	options: {}
+	header?: string
+	store?: keyof typeof stores | Store
+	options?: {}
 }
-function bearerAuth(tokenKey: string, {header = 'Authorization', store = 'localstorage', options = {}} = {}): Middleware {
+function bearerAuth(tokenKey: string, {header = 'Authorization', store = 'localstorage', options = {}}: Opts = {}): Middleware {
 	return async (_, next) => {
-		const {read, write} = typeof store === 'object' ? store : stores[store]
+		const {read, write} = isStore(store) ? store : stores[store]
 
 		const token = await read(tokenKey)
 		const response = await next({
@@ -48,7 +48,7 @@ function bearerAuth(tokenKey: string, {header = 'Authorization', store = 'locals
 		})
 
 		if (response.headers.has(header)) {
-			await write(tokenKey, response.headers.get(header), options)
+			await write(tokenKey, response.headers.get(header) as string, options)
 		}
 
 		return response
@@ -60,3 +60,7 @@ bearerAuth.THIS_SUBDOMAIN = 'localstorage'
 bearerAuth.THIS_SESSION = 'memory'
 
 export default bearerAuth
+
+function isStore(v: Opts['store']): v is Store {
+	return typeof v === 'object'
+}

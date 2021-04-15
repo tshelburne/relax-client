@@ -9,7 +9,8 @@ interface IRequest extends RequestInit {
 	url: Request['url']
 }
 
-type Middleware = (req: IRequest, next?: (req: Partial<IRequest>) => IRequest) => IRequest
+type Next<T> = (updates?: Partial<IRequest>) => Promise<T>
+export type Middleware<T = Response, U = Response> = (req: IRequest, next: Next<U>) => Promise<T>
 interface ClientOpts {
 	qs?: {
 		parse?: qs.IParseOptions
@@ -39,6 +40,8 @@ const MIDDLEWARES = Symbol(`MIDDLEWARES`)
 
 export class Client {
 
+	[MIDDLEWARES]: Middleware[]
+
 	constructor(
 		readonly apiRoot: string, 
 		readonly options: ClientOpts = {}
@@ -46,7 +49,7 @@ export class Client {
 		this[MIDDLEWARES] = []
 	}
 
-	use(this: Client, fn) {
+	use(this: Client, fn: Middleware): void {
 		this[MIDDLEWARES].push(fn)
 	}
 
@@ -76,38 +79,29 @@ export class Client {
 		const body = acceptsBody ? JSON.stringify(data) : undefined
 
 		// prepare url
-		const [, path, search] = rawPath.match(/([^\?]*)\??(.*)?/)
+		const [, path, search] = rawPath.match(/([^\?]*)\??(.*)?/) as [string, string, string]
 		const encodedPath = path.split(`/`).filter(v => v).map(encodeURIComponent).join(`/`)
 		const parsedQs = qs.parse(search, this.options.qs?.parse)
 		const query = qs.stringify({...parsedQs, ...(acceptsBody ? null : data)}, this.options.qs?.stringify)
 		const url = `${this.apiRoot}/${encodedPath}${query && `?${query}`}` // eslint-disable-line no-undef
 
-		// prepare request
-		const middlewares = this[MIDDLEWARES].concat(...(opts.middlewares || []), finalize())
-		const {url: finalUrl, ...requestOpts} = prepare({url, method, body}, middlewares)
-		
-		// fetch response
-		const response = await fetch(finalUrl, requestOpts)
-		if (!response.ok) throw new RequestError(response)
-		return response
+		// run request
+		const middlewares = this[MIDDLEWARES].concat(...(opts.middlewares || []))
+		return run({url, method, body}, middlewares)
 	}
 
 }
 
 export class RequestError extends Error {
-	readonly response: Response
-	
-	constructor(response) {
+	constructor(readonly response: Response) {
 		super(`Request failed: ${response.statusText}`)
-		this.response = response
 	}
 }
 
-function prepare(req: IRequest, [fn, ...rest]: Middleware[]) {
-	if (!fn) return req
-	if (!rest.length) return fn(req)
+function run(req: IRequest, [fn, ...rest]: Middleware[]): Promise<any>  {
+	if (!fn) return send(req as Request)
 
-	return fn(req, (updates) => prepare(merge(req, updates) as IRequest, rest))
+	return fn(req, (updates) => run(merge(req, updates ?? {}) as IRequest, rest))
 	
 }
 
@@ -115,12 +109,14 @@ function merge(obj1: object, obj2: object): object {
 	return obj2 ? deepmerge(obj1, obj2) : obj1
 }
 
-function finalize(): Middleware {
-	return ({method, headers, ...rest}) => {
-		return {
-			...rest,
-			method: method.toUpperCase(),
-			headers: new Headers(headers)
-		}
+async function send({url, method, headers, ...rest}: Request): Promise<Response> {
+	const requestOpts = {
+		...rest,
+		method: method.toUpperCase(),
+		headers: new Headers(headers)
 	}
+
+	const response = await fetch(url, requestOpts)
+	if (!response.ok) throw new RequestError(response)
+	return response
 }

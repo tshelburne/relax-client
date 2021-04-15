@@ -1,10 +1,10 @@
-import {Middleware} from '../client.ts'
+import {Middleware} from '../client'
 
 function form(): Middleware {
 	return ({method, body}, next) => {
-		if (![`post`, `put`].includes(method)) return next()
+		if (![`post`, `put`].includes(method as string)) return next()
 
-		const data = JSON.parse(body)
+		const data = JSON.parse(body as string)
 
 		const formBody = new FormData()
 		for (let k in data) {
