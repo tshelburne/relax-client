@@ -1,9 +1,9 @@
--r @babel/register
+-r ts-node/register
 -r mocha-clean
 -r isomorphic-fetch
 -r mock-local-storage
 -r isomorphic-form-data
---file ./test/setup-chai.js
---file ./test/setup-fetch-mock.js
---file ./test/setup-jsdom.js
+--file ./test/setup-chai.ts
+--file ./test/setup-fetch-mock.ts
+--file ./test/setup-jsdom.ts
 --recursive

@@ -10,7 +10,8 @@ interface IRequest extends RequestInit {
 }
 
 type Next<T> = (updates?: Partial<IRequest>) => Promise<T>
-export type Middleware<T = Response, U = Response> = (req: IRequest, next: Next<U>) => Promise<T>
+export type Middleware<T = any, U = any> = (req: IRequest, next: Next<U>) => Promise<T>
+
 interface ClientOpts {
 	qs?: {
 		parse?: qs.IParseOptions
@@ -49,31 +50,31 @@ export class Client {
 		this[MIDDLEWARES] = []
 	}
 
-	use(this: Client, fn: Middleware): void {
+	use<T, U>(fn: Middleware<T, U>): void {
 		this[MIDDLEWARES].push(fn)
 	}
 
-	get(this: Client, ...args: [Path, Data?, RequestOpts?]) {
+	get(...args: [Path, Data?, RequestOpts?]) {
 		return this.request(`get`, ...args)
 	}
 
-	post(this: Client, ...args: [Path, Data?, RequestOpts?]) {
+	post(...args: [Path, Data?, RequestOpts?]) {
 		return this.request(`post`, ...args)
 	}
 
-	put(this: Client, ...args: [Path, Data?, RequestOpts?]) {
+	put(...args: [Path, Data?, RequestOpts?]) {
 		return this.request(`put`, ...args)
 	}
 
-	patch(this: Client, ...args: [Path, Data?, RequestOpts?]) {
+	patch(...args: [Path, Data?, RequestOpts?]) {
 		return this.request(`patch`, ...args)
 	}
 
-	destroy(this: Client, ...args: [Path, Data?, RequestOpts?]) {
+	destroy(...args: [Path, Data?, RequestOpts?]) {
 		return this.request(`delete`, ...args)
 	}
 
-	async request(this: Client, method: Method, rawPath: Path, data: Data = {}, opts: RequestOpts = {}): Promise<Response> {
+	async request(method: Method, rawPath: Path, data: Data = {}, opts: RequestOpts = {}): Promise<Response> {
 		// prepare body
 		const acceptsBody = [`post`, `put`, `patch`].includes(method)
 		const body = acceptsBody ? JSON.stringify(data) : undefined

@@ -1,15 +1,15 @@
-import fetchMock from 'fetch-mock'
+// @ts-ignore this is necessary b/c, for some reason, addMatcher isn't available in TS context on fetchMock
+import Route from 'fetch-mock/cjs/Route/index'
 
-fetchMock.addMatcher({
+Route.addMatcher({
 	name: 'credentials',
-	matcher: ({credentials}) => (_, opts) => {
-		return credentials === (opts.credentials === 'include')
-	}
+	matcher: (m: {credentials: boolean}) => (_: string, opts: {credentials?: string}) =>
+	    m.credentials === (opts.credentials === 'include')
 })
 
-fetchMock.addMatcher({
+Route.addMatcher({
 	name: 'rawBody',
 	usesBody: true,
-	matcher: ({rawBody}) => (_, {body}) =>
-		typeof rawBody === 'function' ? rawBody(body) : rawBody === body
+	matcher: (m: {rawBody: Function | string}) => (_: string, opts: {body: string}) =>
+		typeof m.rawBody === 'function' ? m.rawBody(opts.body) : m.rawBody === opts.body
 })
