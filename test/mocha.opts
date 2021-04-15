@@ -7,3 +7,4 @@
 --file ./test/setup-fetch-mock.ts
 --file ./test/setup-jsdom.ts
 --recursive
+--extension ts
