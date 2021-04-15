@@ -1,4 +1,4 @@
-import chai, {expect} from 'chai'
+import {expect} from 'chai'
 import fetchMock from 'fetch-mock'
 import create, {RequestError} from '../src/client'
 import json from '../src/middlewares/json'
@@ -15,9 +15,10 @@ describe(`a basic client`, function() {
 	})
 
 	it(`makes GET requests`, async function() {
+		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/account?test=data`,
-			response: 200,
+			response: 200
 		})
 
 		const response = await this.client.get(`account`, {test: `data`})
@@ -26,6 +27,7 @@ describe(`a basic client`, function() {
 	})
 
 	it(`makes POST requests`, async function() {
+		// @ts-ignore
 		fetchMock.post({
 			url: `https://api.test.com/v1/account`,
 			rawBody: `{"test":"data"}`,
@@ -38,6 +40,7 @@ describe(`a basic client`, function() {
 	})
 
 	it(`makes PUT requests`, async function() {
+		// @ts-ignore
 		fetchMock.put({
 			url: `https://api.test.com/v1/account`,
 			rawBody: `{"test":"data"}`,
@@ -50,6 +53,7 @@ describe(`a basic client`, function() {
 	})
 
 	it(`makes PATCH requests`, async function() {
+		// @ts-ignore
 		fetchMock.patch({
 			url: `https://api.test.com/v1/account`,
 			rawBody: `{"test":"data"}`,
@@ -62,6 +66,7 @@ describe(`a basic client`, function() {
 	})
 
 	it(`makes DELETE requests`, async function() {
+		// @ts-ignore
 		fetchMock.delete({
 			url: `https://api.test.com/v1/account?test=data`,
 			response: 200
@@ -73,6 +78,7 @@ describe(`a basic client`, function() {
 	})
 
 	it(`allows using one-off middlewares`, async function() {
+		// @ts-ignore
 		fetchMock.post({
 			url: `https://api.test.com/v1/account`,
 			headers: {
@@ -91,13 +97,14 @@ describe(`a basic client`, function() {
 	})
 
 	it(`appends one-off middlewares to existing ones`, async function() {
+		// @ts-ignore
 		fetchMock.post({
 			url: `https://api.test.com/v1/account`,
 			headers: {
 				'Content-Type': `multipart/form-data`,
 				'Accept': `application/json`
 			},
-			rawBody: (body) => {
+			rawBody: (body: any) => {
 				return body._streams[0].includes(`name="test"`) && body._streams[1] === `data`
 			},
 			response: {data: true}
@@ -112,6 +119,7 @@ describe(`a basic client`, function() {
 	})
 
 	it(`ignores the query string entirely`, async function() {
+		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/account`,
 			response: 200,
@@ -123,6 +131,7 @@ describe(`a basic client`, function() {
 	})
 
 	it(`appends to the query string`, async function() {
+		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/account?original=true&test=data`,
 			response: 200,
@@ -134,10 +143,12 @@ describe(`a basic client`, function() {
 	})
 
 	it(`handles custom qs options`, async function() {
+		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/query?test%5B0%5D=one&test%5B1%5D=two&test%5B2%5D=three`,
 			response: 200,
 		})
+		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.query-test.com/v1/query?test=one&test=two&test=three`,
 			response: 200,
@@ -154,6 +165,7 @@ describe(`a basic client`, function() {
 	})
 
 	it(`throws on requests with failure status codes`, function() {
+		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/account`,
 			response: 400,

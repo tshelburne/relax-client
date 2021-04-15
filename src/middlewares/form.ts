@@ -1,8 +1,10 @@
-function form() {
-	return ({method, body}, next) => {
-		if (![`post`, `put`].includes(method)) return next()
+import {Middleware} from '../client'
 
-		const data = JSON.parse(body)
+function form(): Middleware {
+	return ({method, body}, next) => {
+		if (![`post`, `put`].includes(method as string)) return next()
+
+		const data = JSON.parse(body as string)
 
 		const formBody = new FormData()
 		for (let k in data) {
