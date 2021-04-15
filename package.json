@@ -3,6 +3,7 @@
   "version": "1.7.0",
   "description": "A request helper to make building custom API clients simple",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "test": "mocha",
     "clean": "rm -rf dist",
