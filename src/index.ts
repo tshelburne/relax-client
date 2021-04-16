@@ -1,4 +1,4 @@
-export {default, Client, RequestError} from './client'
+export {default, Client, RequestError, Middleware} from './client'
 export {default as bearerAuth} from './middlewares/bearer-auth'
 export {default as blob} from './middlewares/blob'
 export {default as form} from './middlewares/form'
