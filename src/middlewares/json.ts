@@ -1,6 +1,6 @@
 import type {Middleware} from '../client'
 
-function json(): Middleware<object> {
+function json(): Middleware<object, Response> {
 	return async (_, next) => {
 		const response = await next({
 			headers: {

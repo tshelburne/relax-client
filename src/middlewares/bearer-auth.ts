@@ -35,7 +35,7 @@ interface Opts {
 	store?: keyof typeof stores | Store
 	options?: {}
 }
-function bearerAuth(tokenKey: string, {header = 'Authorization', store = 'localstorage', options = {}}: Opts = {}): Middleware {
+function bearerAuth(tokenKey: string, {header = 'Authorization', store = 'localstorage', options = {}}: Opts = {}): Middleware<Response, Response> {
 	return async (_, next) => {
 		const {read, write} = isStore(store) ? store : stores[store]
 

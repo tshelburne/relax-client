@@ -1,6 +1,6 @@
 import {Middleware} from '../client'
 
-function html(): Middleware<string> {
+function html(): Middleware<string, Response> {
 	return async (_, next) => {
 		const response = await next({ headers: { Accept: `text/html` } })
 		return response.status === 204 ? `` : response.text()
