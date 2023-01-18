@@ -49,12 +49,30 @@
     "isomorphic-form-data": "^2.0.0",
     "jsdom": "^16.4.0",
     "jsdom-global": "^3.0.2",
-    "mocha": "^6.2.3",
+    "mocha": "^10.2.0",
     "mocha-clean": "^1.0.0",
     "mock-local-storage": "^1.1.15",
     "spy-on-cookies": "^0.2.0",
     "ts-node": "^9.1.1",
     "typescript": "^4.2.4"
+  },
+  "mocha": {
+    "require": [
+      "ts-node/register",
+      "mocha-clean",
+      "isomorphic-fetch",
+      "mock-local-storage",
+      "isomorphic-form-data"
+    ],
+    "file": [
+      "./test/setup-chai.ts",
+      "./test/setup-fetch-mock.ts",
+      "./test/setup-jsdom.ts"
+    ],
+    "recursive": true,
+    "extension": [
+      "ts"
+    ]
   },
   "babel": {
     "presets": [
