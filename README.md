@@ -28,17 +28,16 @@ npm install --save relax-client
 
 import create, {bearerAuth, json} from 'relax-client'
 
-const {get, post, put, destroy} = create(`https://api.test.com/v1`, [
-	json(),
-	bearerAuth(`storage-key`),
-])
+const client = create(`https://api.test.com/v1`)
+	.use(bearerAuth(`storage-key`))
+	.use(json())
 
-export const login = (username, password) => post(`login`, {username, password})
-export const logout = () => get(`logout`)
+export const login = (username, password) => client.post(`login`, {username, password})
+export const logout = () => client.get(`logout`)
 
-export const getAccount = () => get(`account`)
-export const updateAccount = (username) => put(`account`, {username})
-export const deleteAccount = () => destroy(`account`)
+export const getAccount = () => client.get(`account`)
+export const updateAccount = (username) => client.put(`account`, {username})
+export const deleteAccount = () => client.destroy(`account`)
 
 // app.js
 
@@ -59,15 +58,13 @@ loginForm.on(`submit`, async function(e) {
 
 ### Middleware
 
-Middlewares are passed as the second argument to the `create` function, or if you prefer an Express-like
-interface, as the only argument to the `Client.use` function (both shown below).
-
-Each middleware function is called with two arguments - the current `request` details and a callback that
-accepts an update object for those request details. The callback will return a Promise that ultimately
-resolves with the response object, and your middlewares can further process the response.
+Middlewares are added via the `use` function. Each middleware function is called with two arguments - 
+the current `request` details and a callback that accepts an update object for those request details. 
+The callback will return a Promise that ultimately resolves with the response object, and your 
+middlewares can further process the response.
 
 Depending on what actions your middlewares take, the order can matter. They take effect in the order they
-are added for the creation of the request, and in reverse order for handling the response.
+are added for the creation of the response (FILO), and in reverse order for updating the request (LIFO).
 
 ```js
 import create, {Client, form} from 'relax-client'
@@ -82,16 +79,9 @@ function custom() {
 	}
 }
 
-const {get, post, put, destroy} = create(`https://api.test.com/v1`, [
-	form(),
-	custom(),
-])
-
-// is equivalent to
-
-const client = new Client(`https://api.test.com/v1`)
-client.use(form())
-client.use(custom())
+const {get, post, put, destroy} = create(`https://api.test.com/v1`)
+	.use(form())
+	.use(custom())
 
 // client.get | client.post | etc.
 ```
@@ -103,11 +93,11 @@ from the conventions of the API at large (eg. a particularly large request body 
 import create, {json} from 'relax-client'
 import gzip from 'relax-client/dist/middlewares/gzip'
 
-const {get, post} = create(`https://api.test.com/v1`, [ json() ])
+const client = create(`https://api.test.com/v1`).use(json())
 
 export const createAccount = (username, criminalRecord) =>
-	post(`account`, {username, criminalRecord}, { middlewares: [ gzip() ] })
-export const getAccount = () => get(`account`)
+	client.post(`account`, {username, criminalRecord}, { middleware: gzip() })
+export const getAccount = () => client.get(`account`)
 ```
 
 #### Bearer Auth
@@ -136,7 +126,7 @@ const authMiddleware = bearerAuth(`storage-key`, {store: 'memory'})
 const authMiddleware = bearerAuth(`storage-key`, {header: `X-Auth-Token`})
 
 // client usage
-const client = create(`https://api.test.com/v1`, [ authMiddleware ])
+const client = create(`https://api.test.com/v1`).use(authMiddleware)
 
 // this should return a response with an Authorization (or custom) header containing an auth token
 await client.post('/login', {username, password})
@@ -174,8 +164,7 @@ to be explicitly loaded from the dist directory.
 import create, {Client, json} from 'relax-client'
 import gzip from 'relax-client/dist/middlewares/gzip'
 
-const {get, post, put, destroy} = create(`https://api.test.com/v1`, [
-	json(),
-	gzip(),
-])
+const {get, post, put, destroy} = create(`https://api.test.com/v1`)
+	.use(json())
+	.use(gzip())
 ```
