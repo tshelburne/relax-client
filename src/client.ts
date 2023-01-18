@@ -5,7 +5,8 @@ type Method = 'get' | 'post' | 'put' | 'patch' | 'delete'
 type Domain = string
 type Path = string
 type Data = object
-interface Req extends RequestInit {
+
+export interface Req extends RequestInit {
 	url: Request['url']
 }
 
@@ -15,13 +16,14 @@ export interface Middleware<In = Response, Out = In> {
 type In<M> = M extends Middleware<infer I, any> ? I : never
 type Out<M> = M extends Middleware<any, infer O> ? O : never
 
-interface ClientOpts {
+export interface ClientOpts {
 	qs?: {
 		parse?: qs.IParseOptions
 		stringify?: qs.IStringifyOptions
 	}
 }
-interface RequestOpts<T, U> {
+
+export interface RequestOpts<T, U> {
 	middleware?: Middleware<T, U>
 }
 
