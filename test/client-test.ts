@@ -1,13 +1,13 @@
 import {expect} from 'chai'
 import fetchMock from 'fetch-mock'
-import create, {RequestError} from '../src/client'
+import create, {Client, RequestError} from '../src/client'
 import json from '../src/middlewares/json'
 import form from '../src/middlewares/form'
 
 describe(`a basic client`, function() {
 
 	beforeEach(function() {
-		this.client = create(`https://api.test.com/v1`)
+		this.client = Client.start(`https://api.test.com/v1`)
 	})
 
 	afterEach(function() {
@@ -90,7 +90,7 @@ describe(`a basic client`, function() {
 		})
 
 		const response = await this.client.post(`account`, {test: `data`}, {
-			middlewares: [json()]
+			middleware: json()
 		})
 
 		expect(response).to.deep.equal({data: true})
@@ -110,9 +110,8 @@ describe(`a basic client`, function() {
 			response: {data: true}
 		})
 
-		this.client = create(`https://api.test.com/v1`, [json()])
-		const response = await this.client.post(`account`, {test: `data`}, {
-			middlewares: [form()]
+		const response = await this.client.use(form()).post(`account`, {test: `data`}, {
+			middleware: json()
 		})
 
 		expect(response).to.deep.equal({data: true})
@@ -158,7 +157,7 @@ describe(`a basic client`, function() {
 		expect(defaultResponse.ok).to.be.true
 		expect(defaultResponse.status).to.equal(200)
 
-		const optionsClient = create(`https://api.query-test.com/v1`, [], {qs: {stringify: {indices: false}}})
+		const optionsClient = create(`https://api.query-test.com/v1`, {qs: {stringify: {indices: false}}})
 		const optionsResponse = await optionsClient.get(`query`, {test: ['one', 'two', 'three']})
 		expect(optionsResponse.ok).to.be.true
 		expect(optionsResponse.status).to.equal(200)
