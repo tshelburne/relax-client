@@ -77,6 +77,25 @@ describe(`a basic client`, function() {
 		expect(response.status).to.equal(200)
 	})
 
+	it(`exposes the last response through the client`, async function() {
+		// @ts-ignore
+		fetchMock.get({
+			url: `https://api.test.com/v1/account`,
+			response: 200
+		})
+		// @ts-ignore
+		fetchMock.get({
+			url: `https://api.test.com/v1/org`,
+			response: 200
+		})
+
+		const res1 = await this.client.get(`account`)
+		expect(this.client.lastResponse).to.equal(res1)
+
+		const res2 = await this.client.get(`org`)
+		expect(this.client.lastResponse).to.equal(res2)
+	})
+
 	it(`allows using one-off middlewares`, async function() {
 		// @ts-ignore
 		fetchMock.post({

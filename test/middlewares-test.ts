@@ -262,6 +262,34 @@ describe(`using middlewares with the client`, function() {
 		expect(accountRes.ok).to.be.true
 	})
 
+	it(`handles authorization via bearer token with static store`, async function() {
+		const token = `tokenvalue`
+		const client = create(`https://api.test.com/v1`).use(bearerAuth(token, {store: 'static'}))
+
+		fetchMock
+			// @ts-ignore
+			.post({
+				url: `https://api.test.com/v1/login`,
+				headers: {Authorization: 'Bearer tokenvalue'},
+				credentials: true,
+				rawBody: '{"username":"user","password":"pass"}',
+				response: {headers: {Authorization: `test-token`}}
+			})
+			// @ts-ignore
+			.get({
+				url: `https://api.test.com/v1/account`,
+				headers: {Authorization: 'Bearer tokenvalue'},
+				credentials: true,
+				response: {data: true}
+			})
+
+		const loginRes = await client.post(`login`, {username: `user`, password: `pass`})
+		expect(loginRes.ok).to.be.true
+
+		const accountRes = await client.get(`account`)
+		expect(accountRes.ok).to.be.true
+	})
+
 	it(`handles authorization via bearer token with custom store`, async function() {
 		const customStore: {[k: string]: string} = {}
 		const tokenKey = `storagekey`

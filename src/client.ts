@@ -33,6 +33,12 @@ export default create
 
 export class Client<M extends Middleware<any, any> = never> {
 
+	get lastResponse() {
+		return this._lastResponse
+	}
+
+	private _lastResponse: Response | null = null
+
 	private constructor(
 		readonly apiRoot: Domain, 
 		readonly options: ClientOpts = {},
@@ -40,7 +46,18 @@ export class Client<M extends Middleware<any, any> = never> {
 		) {}
 
 	static start(apiRoot: Domain, options: ClientOpts = {}) {
-		return new Client(apiRoot, options, send)
+		const client = new Client(apiRoot, options, async (req: Req): Promise<Response> => {
+			const requestOpts = {
+				...req,
+				method: req.method?.toUpperCase() ?? 'GET',
+				headers: new Headers(req.headers)
+			}
+		
+			client._lastResponse = await fetch(req.url, requestOpts)
+			if (!client._lastResponse.ok) throw new RequestError(client._lastResponse)
+			return client._lastResponse
+		})
+		return client
 	}
 
 	use<T>(fn: Middleware<Out<M>, T>): Client<Middleware<In<M>, T>> { 
@@ -85,18 +102,6 @@ export class Client<M extends Middleware<any, any> = never> {
 		return run({url, method, body})
 	}
 
-}
-
-const send: Middleware = async (req) => {
-	const requestOpts = {
-		...req,
-		method: req.method?.toUpperCase() ?? 'GET',
-		headers: new Headers(req.headers)
-	}
-
-	const response = await fetch(req.url, requestOpts)
-	if (!response.ok) throw new RequestError(response)
-	return response
 }
 
 function compose<T, U, V>(m1: Middleware<T, U>, m2: Middleware<U, V>): Middleware<T, V> {
