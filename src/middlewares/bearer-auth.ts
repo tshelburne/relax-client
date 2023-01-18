@@ -6,7 +6,7 @@ interface Store {
 }
 
 const memory: Record<string, any> = {}
-const stores: Record<'cookie' | 'localstorage' | 'memory', Store> = {
+const stores: Record<'cookie' | 'localstorage' | 'memory' | 'static', Store> = {
 	cookie: {
 		read: async (k) => {
 			const res = document.cookie.match(new RegExp(`${k}=([^;]*)`))
@@ -27,6 +27,10 @@ const stores: Record<'cookie' | 'localstorage' | 'memory', Store> = {
 	memory: {
 		read: async (k) => memory[k],
 		write: async (k, v) => memory[k] = v,
+	},
+	static: {
+		read: async (k) => k,
+		write: async () => {},
 	}
 }
 
