@@ -1,7 +1,7 @@
-import chai, {expect} from 'chai'
+import {expect} from 'chai'
 import fetchMock from 'fetch-mock'
 import pako from 'pako'
-import create, {RequestError, json, html, blob, form, bearerAuth} from '../src/index'
+import create, {json, html, form, bearerAuth} from '../src/index'
 import gzip from '../src/middlewares/gzip'
 import spyOnCookies from 'spy-on-cookies'
 

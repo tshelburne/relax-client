@@ -1,4 +1,4 @@
-import {Middleware} from '../client'
+import {Middleware} from '../middleware'
 
 function html(): Middleware<Response, string> {
 	return async (_, next) => {

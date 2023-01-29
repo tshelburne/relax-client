@@ -1,4 +1,4 @@
-import {Middleware} from '../client'
+import {Middleware} from '../middleware'
 
 function blob(): Middleware<Response, Blob> {
 	return async (_, next) => {

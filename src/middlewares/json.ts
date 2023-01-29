@@ -1,4 +1,4 @@
-import type {Middleware} from '../client'
+import type {Middleware} from '../middleware'
 
 type JSON = string | number | boolean | null | JSON[] | { [key: string]: JSON }
 

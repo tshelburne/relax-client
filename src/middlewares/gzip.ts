@@ -1,5 +1,5 @@
 import pako from 'pako'
-import {Middleware} from '../client'
+import {Middleware} from '../middleware'
 
 function gzip(): Middleware {
 	return ({body}, next) => {

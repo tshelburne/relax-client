@@ -1,4 +1,4 @@
-import {Middleware} from '../client'
+import {Middleware} from '../middleware'
 
 interface Store {
 	read: (k: string) => Promise<string | null>

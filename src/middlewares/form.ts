@@ -1,4 +1,4 @@
-import {Middleware} from '../client'
+import {Middleware} from '../middleware'
 
 function form(): Middleware {
 	return ({method, body}, next) => {
