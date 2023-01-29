@@ -1,166 +1,242 @@
-import {expect} from 'chai'
-import fetchMock from 'fetch-mock'
-import create, {Client, RequestError} from '../src/client'
-import json from '../src/middlewares/json'
-import form from '../src/middlewares/form'
+import { expect } from "chai"
+import fetchMock from "fetch-mock"
+import create, { Client, RequestError } from "../src/client"
+import { Middleware } from "../src/middleware"
 
-describe(`a basic client`, function() {
-
-	beforeEach(function() {
-		this.client = Client.start(`https://api.test.com/v1`)
-	})
-
-	afterEach(function() {
+describe(`a basic client`, function () {
+	afterEach(function () {
 		fetchMock.reset()
 	})
 
-	it(`makes GET requests`, async function() {
+	it(`makes GET requests`, async function () {
 		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/account?test=data`,
-			response: 200
+			response: 200,
 		})
 
-		const response = await this.client.get(`account`, {test: `data`})
+		const response = await Client.start("https://api.test.com/v1").get(
+			`account`,
+			{ test: `data` }
+		)
 		expect(response.ok).to.be.true
 		expect(response.status).to.equal(200)
 	})
 
-	it(`makes POST requests`, async function() {
+	it(`makes POST requests`, async function (this: Mocha.Context & {}) {
 		// @ts-ignore
 		fetchMock.post({
 			url: `https://api.test.com/v1/account`,
 			rawBody: `{"test":"data"}`,
-			response: 200
+			response: 200,
 		})
 
-		const response = await this.client.post(`account`, {test: `data`})
+		const response = await Client.start("https://api.test.com/v1").post(
+			`account`,
+			{ test: `data` }
+		)
 		expect(response.ok).to.be.true
 		expect(response.status).to.equal(200)
 	})
 
-	it(`makes PUT requests`, async function() {
+	it(`makes PUT requests`, async function (this: Mocha.Context & {}) {
 		// @ts-ignore
 		fetchMock.put({
 			url: `https://api.test.com/v1/account`,
 			rawBody: `{"test":"data"}`,
-			response: 200
+			response: 200,
 		})
 
-		const response = await this.client.put(`account`, {test: `data`})
+		const response = await Client.start("https://api.test.com/v1").put(
+			`account`,
+			{ test: `data` }
+		)
 		expect(response.ok).to.be.true
 		expect(response.status).to.equal(200)
 	})
 
-	it(`makes PATCH requests`, async function() {
+	it(`makes PATCH requests`, async function (this: Mocha.Context & {}) {
 		// @ts-ignore
 		fetchMock.patch({
 			url: `https://api.test.com/v1/account`,
 			rawBody: `{"test":"data"}`,
-			response: 200
+			response: 200,
 		})
 
-		const response = await this.client.patch(`account`, {test: `data`})
+		const response = await Client.start("https://api.test.com/v1").patch(
+			`account`,
+			{ test: `data` }
+		)
 		expect(response.ok).to.be.true
 		expect(response.status).to.equal(200)
 	})
 
-	it(`makes DELETE requests`, async function() {
+	it(`makes DELETE requests`, async function (this: Mocha.Context & {}) {
 		// @ts-ignore
 		fetchMock.delete({
 			url: `https://api.test.com/v1/account?test=data`,
-			response: 200
+			response: 200,
 		})
 
-		const response = await this.client.destroy(`account`, {test: `data`})
+		const response = await Client.start("https://api.test.com/v1").destroy(
+			`account`,
+			{ test: `data` }
+		)
 		expect(response.ok).to.be.true
 		expect(response.status).to.equal(200)
 	})
 
-	it(`exposes the last response through the client`, async function() {
+	it(`exposes the last response through the client`, async function (this: Mocha.Context & {}) {
 		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/account`,
-			response: 200
+			response: 200,
 		})
 		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/org`,
-			response: 200
+			response: 200,
 		})
 
-		const res1 = await this.client.get(`account`)
-		expect(this.client.lastResponse).to.equal(res1)
+		const client = Client.start("https://api.test.com/v1")
 
-		const res2 = await this.client.get(`org`)
-		expect(this.client.lastResponse).to.equal(res2)
+		const res1 = await client.get(`account`)
+		expect(client.lastResponse).to.equal(res1)
+
+		const res2 = await client.get(`org`)
+		expect(client.lastResponse).to.equal(res2)
 	})
 
-	it(`allows using one-off middlewares`, async function() {
+	it(`allows using middlewares`, async function (this: Mocha.Context & {}) {
 		// @ts-ignore
 		fetchMock.post({
 			url: `https://api.test.com/v1/account`,
 			headers: {
-				'Content-Type': `application/json`,
-				'Accept': `application/json`
+				Accept: `application/json`,
 			},
 			rawBody: `{"test":"data"}`,
-			response: {data: true}
+			response: 200,
 		})
 
-		const response = await this.client.post(`account`, {test: `data`}, {
-			middleware: json()
-		})
+		const response = await Client.start("https://api.test.com/v1")
+			.use(addHeader(`Accept`, `application/json`))
+			.post(`account`, { test: `data` })
 
-		expect(response).to.deep.equal({data: true})
+		expect(response.ok).to.be.true
+		expect(response.status).to.equal(200)
 	})
 
-	it(`appends one-off middlewares to existing ones`, async function() {
+	it(`stacks middlewares to adjust the request`, async function () {
 		// @ts-ignore
 		fetchMock.post({
 			url: `https://api.test.com/v1/account`,
 			headers: {
-				'Content-Type': `multipart/form-data`,
-				'Accept': `application/json`
+				Accept: `application/json`,
+				"X-Test": "false",
 			},
-			rawBody: (body: any) => {
-				return body._streams[0].includes(`name="test"`) && body._streams[1] === `data`
-			},
-			response: {data: true}
+			rawBody: `{"test":"data"}`,
+			response: 200,
 		})
 
-		const response = await this.client.use(form()).post(`account`, {test: `data`}, {
-			middleware: json()
-		})
+		const response = await Client.start("https://api.test.com/v1")
+			.use(addHeader(`Accept`, `application/json`))
+			.use((req, next) => next({
+				headers: {
+					"X-Test": (req.headers as any)["X-Test"] === "true" ? "false" : "none",
+				}
+			}))
+			.use(addHeader(`X-Test`, `true`))
+			.post(`account`, { test: `data` })
 
-		expect(response).to.deep.equal({data: true})
+		expect(response.ok).to.be.true
+		expect(response.status).to.equal(200)
 	})
 
-	it(`ignores the query string entirely`, async function() {
+	it(`allows using one-off middlewares`, async function (this: Mocha.Context & {}) {
+		// @ts-ignore
+		fetchMock.post({
+			url: `https://api.test.com/v1/account`,
+			headers: {
+				Accept: `application/json`,
+			},
+			rawBody: `{"test":"data"}`,
+			response: 200,
+		})
+
+		const response = await Client.start("https://api.test.com/v1").post(
+			`account`,
+			{ test: `data` },
+			{
+				middleware: addHeader(`Accept`, `application/json`),
+			}
+		)
+
+		expect(response.ok).to.be.true
+		expect(response.status).to.equal(200)
+	})
+
+	it(`stacks one-off middlewares to adjust the request`, async function (this: Mocha.Context & {}) {
+		// @ts-ignore
+		fetchMock.post({
+			url: `https://api.test.com/v1/account`,
+			headers: {
+				Accept: `application/json`,
+				"X-Test": `false`,
+			},
+			rawBody: `{"test":"data"}`,
+			response: 200,
+		})
+
+		const response = await Client.start("https://api.test.com/v1")
+			.use(addHeader("Accept", "application/json"))
+			.use(addHeader("X-Test", "true"))
+			.post(
+				`account`,
+				{ test: `data` },
+				{
+					middleware: (req, next) =>
+						next({
+							headers: {
+								"X-Test": (req.headers as any)['X-Test'] === "true" ? "false" : "none",
+							},
+						}),
+				}
+			)
+			
+		expect(response.ok).to.be.true
+		expect(response.status).to.equal(200)
+	})
+
+	it(`ignores the query string entirely`, async function (this: Mocha.Context & {}) {
 		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/account`,
 			response: 200,
 		})
 
-		const response = await this.client.get(`account`)
+		const response = await Client.start("https://api.test.com/v1").get(
+			`account`
+		)
 		expect(response.ok).to.be.true
 		expect(response.status).to.equal(200)
 	})
 
-	it(`appends to the query string`, async function() {
+	it(`appends to the query string`, async function (this: Mocha.Context & {}) {
 		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/account?original=true&test=data`,
 			response: 200,
 		})
 
-		const response = await this.client.get(`account?original=true`, {test: `data`})
+		const response = await Client.start("https://api.test.com/v1").get(
+			`account?original=true`,
+			{ test: `data` }
+		)
 		expect(response.ok).to.be.true
 		expect(response.status).to.equal(200)
 	})
 
-	it(`handles custom qs options`, async function() {
+	it(`handles custom qs options`, async function (this: Mocha.Context & {}) {
 		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/query?test%5B0%5D=one&test%5B1%5D=two&test%5B2%5D=three`,
@@ -172,24 +248,42 @@ describe(`a basic client`, function() {
 			response: 200,
 		})
 
-		const defaultResponse = await this.client.get(`query`, {test: ['one', 'two', 'three']})
+		const defaultResponse = await Client.start("https://api.test.com/v1").get(
+			`query`,
+			{ test: ["one", "two", "three"] }
+		)
 		expect(defaultResponse.ok).to.be.true
 		expect(defaultResponse.status).to.equal(200)
 
-		const optionsClient = create(`https://api.query-test.com/v1`, {qs: {stringify: {indices: false}}})
-		const optionsResponse = await optionsClient.get(`query`, {test: ['one', 'two', 'three']})
+		const optionsClient = create(`https://api.query-test.com/v1`, {
+			qs: { stringify: { indices: false } },
+		})
+		const optionsResponse = await optionsClient.get(`query`, {
+			test: ["one", "two", "three"],
+		})
 		expect(optionsResponse.ok).to.be.true
 		expect(optionsResponse.status).to.equal(200)
 	})
 
-	it(`throws on requests with failure status codes`, function() {
+	it(`throws on requests with failure status codes`, function () {
 		// @ts-ignore
 		fetchMock.get({
 			url: `https://api.test.com/v1/account`,
 			response: 400,
 		})
 
-		expect(this.client.get(`account`)).to.eventually.be.rejectedWith(RequestError, `Request failed: Bad Request`)
+		expect(
+			Client.start("https://api.test.com/v1").get(`account`)
+		).to.eventually.be.rejectedWith(RequestError, `Request failed: Bad Request`)
 	})
-
 })
+
+function addHeader(name: string, value: string): Middleware {
+	return (_, next) => {
+		return next({
+			headers: {
+				[name]: value,
+			},
+		})
+	}
+}

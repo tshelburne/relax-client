@@ -1,19 +1,11 @@
 import qs from 'qs'
-import deepmerge from 'deepmerge'
+import { Req, Middleware, compose } from './middleware'
 
 type Method = 'get' | 'post' | 'put' | 'patch' | 'delete'
 type Domain = string
 type Path = string
 type Data = object
 
-export interface Req extends RequestInit {
-	url: Request['url']
-}
-
-export interface Middleware<In = Response, Out = In> {
-	(req: Req, next: (updates?: Partial<Req>) => Promise<In>): Promise<Out>
-}
-type In<M> = M extends Middleware<infer I, any> ? I : never
 type Out<M> = M extends Middleware<any, infer O> ? O : never
 
 export interface ClientOpts {
@@ -23,8 +15,8 @@ export interface ClientOpts {
 	}
 }
 
-export interface RequestOpts<T, U> {
-	middleware?: Middleware<T, U>
+export interface RequestOpts {
+	middleware?: Middleware
 }
 
 function create(apiRoot: Domain, options: ClientOpts = {}) {
@@ -33,7 +25,7 @@ function create(apiRoot: Domain, options: ClientOpts = {}) {
 
 export default create
 
-export class Client<M extends Middleware<any, any> = never> {
+export class Client<M extends Middleware<Response, any>> {
 
 	get lastResponse() {
 		return this._lastResponse
@@ -47,46 +39,36 @@ export class Client<M extends Middleware<any, any> = never> {
 		private _middleware: M,
 		) {}
 
-	static start(apiRoot: Domain, options: ClientOpts = {}) {
-		const client = new Client(apiRoot, options, async (req: Req): Promise<Response> => {
-			const requestOpts = {
-				...req,
-				method: req.method?.toUpperCase() ?? 'GET',
-				headers: new Headers(req.headers)
-			}
-		
-			client._lastResponse = await fetch(req.url, requestOpts)
-			if (!client._lastResponse.ok) throw new RequestError(client._lastResponse)
-			return client._lastResponse
-		})
+	static start(apiRoot: Domain, options: ClientOpts = {}): Client<Middleware> {
+		const client = new Client(apiRoot, options, (_, next) => next())
 		return client
 	}
 
-	use<T>(fn: Middleware<Out<M>, T>): Client<Middleware<In<M>, T>> { 
+	use<T>(fn: Middleware<Out<M>, T>) { 
 		return new Client(this.apiRoot, this.options, compose(this._middleware, fn))
 	}
 
-	get<T>(...args: [Path, Data?, RequestOpts<Out<M>, T>?]) {
+	get(...args: [Path, Data?, RequestOpts?]) {
 		return this.request(`get`, ...args)
 	}
 
-	post<T>(...args: [Path, Data?, RequestOpts<Out<M>, T>?]) {
+	post(...args: [Path, Data?, RequestOpts?]) {
 		return this.request(`post`, ...args)
 	}
 
-	put<T>(...args: [Path, Data?, RequestOpts<Out<M>, T>?]) {
+	put(...args: [Path, Data?, RequestOpts?]) {
 		return this.request(`put`, ...args)
 	}
 
-	patch<T>(...args: [Path, Data?, RequestOpts<Out<M>, T>?]) {
+	patch(...args: [Path, Data?, RequestOpts?]) {
 		return this.request(`patch`, ...args)
 	}
 
-	destroy<T>(...args: [Path, Data?, RequestOpts<Out<M>, T>?]) {
+	destroy(...args: [Path, Data?, RequestOpts?]) {
 		return this.request(`delete`, ...args)
 	}
 
-	async request<T>(method: Method, rawPath: Path, data: Data = {}, opts: RequestOpts<Out<M>, T> = {}): Promise<Response> {
+	async request(method: Method, rawPath: Path, data: Data = {}, opts: RequestOpts = {}): Promise<Out<M>> {
 		// prepare body
 		const acceptsBody = [`post`, `put`, `patch`].includes(method)
 		const body = acceptsBody ? JSON.stringify(data) : undefined
@@ -99,26 +81,26 @@ export class Client<M extends Middleware<any, any> = never> {
 		const url = `${this.apiRoot}/${encodedPath}${query && `?${query}`}` // eslint-disable-line no-undef
 
 		// run request
-		const run = opts?.middleware ? compose(this._middleware, opts.middleware) : this._middleware
+		const middleware = opts?.middleware ? compose(opts.middleware, this._middleware) : this._middleware
+		const run = compose(async (req: Req): Promise<Response> => {
+			const requestOpts = {
+				...req,
+				method: req.method?.toUpperCase() ?? 'GET',
+				headers: new Headers(req.headers)
+			}
+		
+			this._lastResponse = await fetch(req.url, requestOpts)
+			if (!this._lastResponse.ok) throw new RequestError(this._lastResponse)
+			return this._lastResponse
+		}, middleware)
 		// @ts-ignore
 		return run({url, method, body})
 	}
 
 }
 
-function compose<T, U, V>(m1: Middleware<T, U>, m2: Middleware<U, V>): Middleware<T, V> {
-	return async (req, next) => {
-		const nextFn = (updates?: Partial<Req>) => m1(merge(req, updates ?? {}) as Req, next)
-		return m2(req, nextFn)
-	}
-}
-
 export class RequestError extends Error {
 	constructor(readonly response: Response) {
 		super(`Request failed: ${response.statusText}`)
 	}
-}
-
-function merge(obj1: object, obj2: object): object {
-	return obj2 ? deepmerge(obj1, obj2) : obj1
 }
