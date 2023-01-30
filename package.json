@@ -1,6 +1,6 @@
 {
   "name": "relax-client",
-  "version": "2.1.2",
+  "version": "2.2.0",
   "description": "A request helper to make building custom API clients simple",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
